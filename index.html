@@ -77,13 +77,14 @@
         .content-panel {
             background: var(--bg-card); padding: 20px; border-radius: 8px;
             border: 1px solid #334155; overflow-y: auto;
+            display: flex; flex-direction: column;
         }
-        .module-section { display: none; }
-        .module-section.active { display: block; }
-        .module-section h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .module-section { display: none; height: 100%; }
+        .module-section.active { display: flex; flex-direction: column; gap: 15px; }
+        .module-section h3 { margin: 0; font-size: 1.2rem; border-bottom: 1px solid #334155; padding-bottom: 10px; }
 
         /* FORMULARIOS ESTILO OSCURO */
-        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
+        .form-group { margin-bottom: 5px; display: flex; flex-direction: column; gap: 6px; }
         .form-group label { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
         .form-group input, .form-group textarea, .form-group select {
             background: var(--bg-input); border: 1px solid #475569; padding: 10px;
@@ -91,7 +92,7 @@
         }
 
         /* LISTAS DE DATOS */
-        .data-list { list-style: none; padding: 0; margin-top: 10px; }
+        .data-list { list-style: none; padding: 0; margin: 0; }
         .data-list li {
             background: var(--bg-input); padding: 12px 15px; margin-bottom: 8px;
             border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between;
@@ -100,24 +101,42 @@
         .data-list li:hover { border-color: var(--accent); background: #475569; }
         .data-list li strong { color: #f59e0b; margin-right: 5px;}
 
-        /* COLUMNA 3: MONITOR EN VIVO */
+        /* SECCIÓN VISOR PDF INTERNO */
+        .pdf-container {
+            display: grid; grid-template-columns: 1fr; gap: 15px; flex-grow: 1; min-height: 350px;
+        }
+        .pdf-viewer-frame {
+            width: 100%; height: 100%; border: 1px solid #475569; border-radius: 6px; background: #fff;
+        }
+        .pdf-tools {
+            background: #0f172a; padding: 12px; border-radius: 6px; border: 1px solid #334155;
+        }
+
+        /* COLUMNA 3: MONITOR EN VIVO OPTIMIZADO VERTICALMENTE */
         .preview-panel {
             background: #020617; color: white; padding: 15px;
-            border-radius: 8px; display: flex; flex-direction: column; gap: 15px;
-            border: 1px solid #1e293b;
+            border-radius: 8px; display: flex; flex-direction: column; gap: 12px;
+            border: 1px solid #1e293b; height: 100%; box-sizing: border-box;
         }
         .monitor-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;}
+        
+        /* MINI MONITOR COMPACTADO A 95PX */
         .monitor-box {
-            background: black; border: 2px solid #334155; height: 200px;
+            background: black; border: 2px solid #334155; height: 95px;
             border-radius: 6px; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center; padding: 15px;
+            justify-content: center; align-items: center; text-align: center; padding: 8px;
             position: relative; overflow: hidden; background-size: cover; background-position: center;
         }
         .monitor-video-bg {
             position: absolute; width: 100%; height: 100%; top: 0; left: 0; object-fit: cover; z-index: 1; opacity: 0.4;
         }
-        #monitor-text { font-size: 1.15rem; font-weight: bold; position: relative; z-index: 2; text-shadow: 2px 2px 4px #000; }
-        #monitor-ref { color: #f59e0b; margin-top: 8px; font-size: 0.9rem; position: relative; z-index: 2; text-shadow: 1px 1px 2px #000; }
+        #monitor-text { font-size: 0.95rem; font-weight: bold; position: relative; z-index: 2; text-shadow: 2px 2px 4px #000; }
+        #monitor-ref { color: #f59e0b; margin-top: 4px; font-size: 0.75rem; position: relative; z-index: 2; text-shadow: 1px 1px 2px #000; }
+        
+        /* CONTENEDOR FLUIDO EXTRA GRANDE PARA ESTROFAS EN COLA */
+        .queue-container {
+            flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 2px;
+        }
     </style>
 </head>
 <body>
@@ -133,60 +152,61 @@
     <main>
         <!-- COLUMNA 1: MENÚ -->
         <div class="sidebar">
-            <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Sagrada Biblia (RVR1960)</button>
-            <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Alabanzas (Local/Web)</button>
+            <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Sagrada Biblia (RVR1960 / PDF)</button>
+            <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Gestión de Alabanzas (Local)</button>
             <button class="menu-btn" onclick="cambiarModulo('fondos', this)">🖼️ Gestión de Multimedia</button>
         </div>
 
         <!-- COLUMNA 2: PANELES INTERACTIVOS -->
         <div class="content-panel">
             
-            <!-- SECCIÓN BIBLIA -->
+            <!-- SECCIÓN BIBLIA (SOPORTE DE BASE INTERNA + LECTOR PDF INTEGRADO) -->
             <div id="mod-biblia" class="module-section active">
-                <h3>📖 Versión Activa: Reina Valera 1960</h3>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: -10px;">Base de datos bíblica RVR1960 incorporada localmente de forma nativa.</p>
+                <h3>📖 Sagrada Biblia e Importación de PDF</h3>
                 
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-top: 15px;">
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px;">
                     <select id="bible-book" onchange="actualizarCapitulos()"></select>
                     <select id="bible-chapter" onchange="buscarVersiculos()"></select>
                     <input type="number" id="bible-verse-num" placeholder="Ver." oninput="filtrarVersiculoEspecifico()">
                 </div>
-                <ul class="data-list" id="bible-results"></ul>
+                <ul class="data-list" id="bible-results" style="max-height: 160px; overflow-y: auto;"></ul>
 
-                <hr style="border-color: #334155; margin: 25px 0;">
-                <h3>📥 Importación Opcional Externa (.BI / .JSON)</h3>
-                <div class="form-group">
-                    <input type="file" id="bible-file" accept=".bi,.json" onchange="cargarArchivoBiblia(event)">
+                <div class="pdf-tools">
+                    <label style="color: var(--warning); font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 6px; text-transform: uppercase;">📂 Cargar Biblia Digital o Bosquejo en PDF:</label>
+                    <input type="file" id="pdf-bible-file" accept=".pdf" onchange="cargarBibliaPDF(event)" style="color: white; font-size: 0.9rem;">
+                </div>
+
+                <div class="pdf-container">
+                    <div style="display: flex; flex-direction: column; gap: 10px; height: 100%;">
+                        <div style="background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; display: flex; gap: 10px; align-items: center;">
+                            <input type="text" id="pdf-custom-text" placeholder="Selecciona texto del PDF o escribe un verso aquí..." style="flex-grow: 1; background: var(--bg-card); border: 1px solid #475569; padding: 8px; border-radius: 4px; color: white;">
+                            <input type="text" id="pdf-custom-ref" placeholder="Cita (Ej: Juan 3:16)" style="width: 140px; background: var(--bg-card); border: 1px solid #475569; padding: 8px; border-radius: 4px; color: white;">
+                            <button class="btn btn-warning" onclick="proyectarTextoManualPDF()" style="padding: 8px 15px;"> Proyectar</button>
+                        </div>
+                        <iframe id="pdf-render-frame" class="pdf-viewer-frame" src="about:blank" style="display: none;"></iframe>
+                        <div id="pdf-placeholder" style="border: 2px dashed #475569; border-radius: 6px; display: flex; justify-content: center; align-items: center; color: var(--text-muted); flex-grow: 1; text-align: center; padding: 20px;">
+                            Ningún archivo PDF cargado en este momento. Sube tu PDF arriba para visualizarlo y capturar versos en vivo.
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- SECCIÓN CANCIONES -->
+            <!-- SECCIÓN CANCIONES (100% MANUAL Y LOCAL) -->
             <div id="mod-canciones" class="module-section">
-                <h3>🌐 Buscador Inteligente Web (Multi-Proxy AntiCORS)</h3>
-                <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 10px; margin-bottom: 15px;">
-                    <input type="text" id="web-search-query" placeholder="Escribe el nombre de la alabanza..." style="background: var(--bg-input); border: 1px solid #475569; padding: 12px; border-radius: 6px; color: white;">
-                    <button class="btn btn-warning" onclick="buscarAlabanzasEnWeb()">🔍 Buscar Web</button>
-                </div>
-                <ul class="data-list" id="web-search-results" style="max-height: 200px; overflow-y: auto; background: #0f172a; padding: 5px; border-radius: 6px;">
-                    <li style="color: var(--text-muted); font-size: 0.9rem;">Los resultados de internet aparecerán aquí...</li>
-                </ul>
-
-                <hr style="border-color: #334155; margin: 20px 0;">
-
-                <h3>🎵 Tu Repertorio Guardado (Local)</h3>
-                <div style="margin-bottom: 15px;">
-                    <input type="text" id="search-songs-input" placeholder="🔍 Filtrar en tus alabanzas locales..." onkeyup="buscarAlabanzasNavegador()" style="width: 100%; background: var(--bg-input); border: 1px solid #475569; padding: 12px; border-radius: 6px; box-sizing: border-box; color: white; font-size: 1rem;">
-                </div>
-                <ul class="data-list" id="lista-canciones-db"></ul>
-
-                <hr style="border-color: #334155; margin: 20px 0;">
-
-                <h3>✍️ Agregar Alabanza Manualmente</h3>
+                <h3>✍️ Registrar Nueva Alabanza</h3>
                 <div class="form-group">
-                    <input type="text" id="song-title" placeholder="Título de la Alabanza">
-                    <textarea id="song-lyrics" rows="4" placeholder="Escribe las estrofas. Usa doble Enter para separar estrofas."></textarea>
-                    <button class="btn" onclick="guardarCancionManual()">💾 Guardar Manualmente</button>
+                    <input type="text" id="song-title" placeholder="Título oficial de la alabanza">
+                    <textarea id="song-lyrics" rows="5" placeholder="Escribe o pega las estrofas aquí.&#10;IMPORTANTE: Usa DOBLE ENTER para separar una estrofa de otra."></textarea>
+                    <button class="btn btn-success" onclick="guardarCancionManual()" style="width: 100%; padding: 12px;">💾 Guardar permanentemente en el Sistema</button>
                 </div>
+
+                <hr style="border-color: #334155; margin: 10px 0;">
+
+                <h3>🎵 Tu Repertorio de Alabanzas Guardadas</h3>
+                <div style="margin-bottom: 10px;">
+                    <input type="text" id="search-songs-input" placeholder="🔍 Buscar alabanza por título o letra..." onkeyup="buscarAlabanzasNavegador()" style="width: 100%; background: var(--bg-input); border: 1px solid #475569; padding: 12px; border-radius: 6px; box-sizing: border-box; color: white; font-size: 1rem;">
+                </div>
+                <ul class="data-list" id="lista-canciones-db" style="max-height: 250px; overflow-y: auto;"></ul>
             </div>
 
             <!-- SECCIÓN MULTIMEDIA / FONDOS -->
@@ -207,21 +227,32 @@
 
         </div>
 
-        <!-- COLUMNA 3: PANEL MONITOR EN VIVO -->
+        <!-- COLUMNA 3: MONITOR EN VIVO Y ESPACIO VERTICAL MAXIMIZADO -->
         <div class="preview-panel">
-            <div class="monitor-title">Monitor de Transmisión (Proyector)</div>
+            <div class="monitor-title">Monitor de Transmisión</div>
+            
+            <!-- MONITOR COMPACTO DE 95PX -->
             <div class="monitor-box" id="panel-monitor">
                 <video id="monitor-video" class="monitor-video-bg" autoplay loop muted style="display: none;"></video>
                 <div id="monitor-text">Pantalla de Bienvenida</div>
                 <div id="monitor-ref">LPC</div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button class="btn btn-danger" onclick="enviarProyeccion('', '')">🚫 Limpiar Pantalla</button>
-                <button class="btn" style="background:#475569" onclick="cambiarFondoColor('#000000')">🖤 Fondo Negro</button>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="btn btn-danger" style="padding: 6px;" onclick="enviarProyeccion('', '')">🚫 Limpiar</button>
+                <button class="btn" style="background:#475569; padding: 6px;" onclick="cambiarFondoColor('#000000')">🖤 Fondo Negro</button>
             </div>
-            <hr style="border-color: #334155; margin: 5px 0;">
-            <div class="monitor-title">Estrofas / Líneas en Cola</div>
-            <div id="live-segments-queue" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:200px;"></div>
+            
+            <hr style="border-color: #334155; margin: 2px 0;">
+            
+            <div class="monitor-title" style="color: var(--warning);">Estrofas / Versos en Cola (Selección Directa)</div>
+            
+            <!-- CONTENEDOR AMPLIO PARA SELECCIÓN FLUIDA -->
+            <div id="live-segments-queue" class="queue-container">
+                <div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; margin-top: 20px;">
+                    Selecciona una alabanza o un versículo para desplegar su secuencia aquí.
+                </div>
+            </div>
         </div>
     </main>
 
@@ -231,58 +262,81 @@
         let mediaFondoUrl = null;
         let mediaFondoTipo = null; 
 
-        // --- EXTENSA BASE DE DATOS DE LA BIBLIA REINA VALERA 1960 INTEGRADA ---
+        // --- BASE DE DATOS DE LA BIBLIA REINA VALERA 1960 PRE-CARGADA ---
         const rvr1960Predeterminada = [
             {
                 name: "Génesis",
                 chapters: [
                     ["En el principio creó Dios los cielos y la tierra.", "Y la tierra estaba desordenada y vacía, y las tinieblas estaban sobre la faz del abismo, y el Espíritu de Dios se movía sobre la faz de las aguas.", "Y dijo Dios: Sea la luz; y fue la luz.", "Y vio Dios que la luz era buena; y separó Dios la luz de las tinieblas.", "Y llamó Dios a la luz Día, y a las tinieblas llamó Noche. Y fue la tarde y la mañana un día."],
-                    ["Fueron, pues, acabados los cielos y la tierra, y todo el ejército de ellos.", "Y acabó Dios en el día séptimo la obra que hizo; y reposó el día séptimo de toda la obra que hizo.", "Y bendijo Dios al día séptimo, y lo santificó, porque en él reposó de toda la obra que había hecho en la creación."]
+                    ["Fueron, pues, acabados los cielos y la tierra, y todo el ejército de ellos.", "Y acabó Dios en el día séptimo la obra que hizo; y reposó el día séptimo de toda la obra que hizo."]
                 ]
             },
             {
                 name: "Éxodo",
                 chapters: [
-                    ["Estos son los nombres de los hijos de Israel que entraron en Egipto con Jacob; cada uno entró con su familia:", "Rubén, Simeón, Leví y Judá;", "Isacar, Zabulón y Benjamín;", "Dan y Neftalí, Gad y Aser."],
-                    ["Un varón de la familia de Leví fue y tomó por mujer a una hija de Leví,", "la que concibió, y dio a luz un hijo; y viéndole que era hermoso, le escondió por tres meses.", "Pero no pudiendo ocultarle más tiempo, tomó una arquilla de juncos y la calafateó con asfalto y brea, y colocó en ella al niño, y lo puso en un carrizal a la orilla del río."]
+                    ["Estos son los nombres de los hijos de Israel que entraron en Egipto con Jacob...", "Rubén, Simeón, Leví y Judá;"]
                 ]
             },
             {
                 name: "Salmos",
                 chapters: [
-                    ["Bienaventurado el varón que no anduvo en consejo de malos, Ni estuvo en camino de pecadores, Ni en silla de escarnecedores se ha sentado;", "Sino que en la ley de Jehová está su delicia, Y en su ley medita de día y de noche.", "Será como árbol plantado junto a corrientes de aguas, Que da su fruto en su tiempo, Y su hoja no cae; Y todo lo que hace, prosperará."],
-                    ["Jehová es mi pastor; nada me faltará.", "En lugares de delicados pastos me hará descansar; Junto a aguas de reposo me pastoreará.", "Confortará mi alma; Me guiará por sendas de justicia por amor de su nombre.", "Aunque ande en valle de sombra de muerte, no temeré mal alguno, porque tú estarás conmigo; tu vara y tu cayado me infundirán aliento."]
-                ]
-            },
-            {
-                name: "Proverbios",
-                chapters: [
-                    ["Los proverbios de Salomón, hijo de David, rey de Israel.", "Para entender sabiduría y doctrina, Para conocer razones prudentes,", "Para recibir el consejo de prudencia, Justicia, juicio y equidad;", "El principio de la sabiduría es el temor de Jehová; Los insensatos desprecian la sabiduría y la enseñanza."]
-                ]
-            },
-            {
-                name: "Isaías",
-                chapters: [
-                    ["Visión de Isaías hijo de Amoz, la cual vio acerca de Judá y de Jerusalén en los días de Uzías, Jotam, Acaz y Ezequías, reyes de Judá.", "Oíd, cielos, y escucha tú, tierra; porque habla Jehová: Crié hijos, y los engrandecí, y ellos se rebelaron contra mí."]
+                    ["Bienaventurado el varón que no anduvo en consejo de malos, Ni estuvo en camino de pecadores...", "Sino que en la ley de Jehová está su delicia, Y en su ley medita de día y de noche."],
+                    ["Jehová es mi pastor; nada me faltará.", "En lugares de delicados pastos me hará descansar; Junto a aguas de reposo me pastoreará.", "Confortará mi alma; Me guiará por sendas de justicia por amor de su nombre."]
                 ]
             },
             {
                 name: "Mateo",
                 chapters: [
-                    ["Libro de la genealogía de Jesucristo, hijo de David, hijo de Abraham.", "Abraham engendró a Isaac, Isaac engendró a Jacob, y Jacob engendró a Judá y a sus hermanos."],
-                    ["Cuando Jesús nació en Belén de Judea en días del rey Herodes, vinieron del oriente a Jerusalén unos magos,", "diciendo: ¿Dónde está el rey de los judíos, que ha nacido? Porque su estrella hemos visto en el oriente, y venimos a adorarle."]
+                    ["Libro de la genealogía de Jesucristo, hijo de David, hijo de Abraham.", "Abraham engendró a Isaac, Isaac engendró a Jacob..."]
                 ]
             },
             {
                 name: "Juan",
                 chapters: [
-                    ["En el principio era el Verbo, y el Verbo era con Dios, y el Verbo era Dios.", "Este era en el principio con Dios.", "Todas las cosas por él fueron hechas, y sin él nada de lo que ha sido hecho, fue hecho.", "En él estaba la vida, y la vida era la luz de los hombres."],
-                    ["Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.", "Porque no envió Dios a su Hijo al mundo para condenar al mundo, sino para que el mundo sea salvo por él."]
+                    ["En el principio era el Verbo, y el Verbo era con Dios, y el Verbo era Dios.", "Este era en el principio con Dios.", "Todas las cosas por él fueron hechas, y sin él nada de lo que ha sido hecho, fue hecho."],
+                    ["Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna."]
                 ]
             }
         ];
 
         baseDatosBiblia = rvr1960Predeterminada;
+
+        // --- MANEJO DE BIBLIA EN PDF ---
+        function cargarBibliaPDF(evento) {
+            const archivo = evento.target.files[0];
+            if (!archivo) return;
+
+            const urlPdf = URL.createObjectURL(archivo);
+            const iframe = document.getElementById('pdf-render-frame');
+            const placeholder = document.getElementById('pdf-placeholder');
+
+            iframe.src = urlPdf;
+            iframe.style.display = "block";
+            placeholder.style.display = "none";
+        }
+
+        function proyectarTextoManualPDF() {
+            const texto = document.getElementById('pdf-custom-text').value.trim();
+            const referencia = document.getElementById('pdf-custom-ref').value.trim();
+
+            if (!texto) return alert("Por favor escribe o selecciona un texto para proyectar.");
+            
+            // Enviarlo al monitor y proyector directamente
+            enviarProyeccion(texto, referencia || "Biblia / Notas");
+
+            // Crear un segmento en la cola derecha para tenerlo guardado en la sesión
+            const colaDiv = document.getElementById('live-segments-queue');
+            colaDiv.innerHTML = ""; // Limpiar anteriores
+            
+            let btn = document.createElement('button');
+            btn.className = "menu-btn";
+            btn.style.padding = "10px";
+            btn.style.borderLeft = "4px solid var(--warning)";
+            btn.innerHTML = `<strong style="color:var(--warning)">${referencia || 'PDF'}:</strong><br>${texto}`;
+            btn.onclick = () => enviarProyeccion(texto, referencia || "Biblia / Notas");
+            
+            colaDiv.appendChild(btn);
+        }
 
         // --- SISTEMA DE DOBLE PANTALLA ---
         function abrirPantallaProyector() {
@@ -313,7 +367,7 @@
         }
 
         function enviarProyeccion(texto, referencia) {
-            document.getElementById('monitor-text').innerText = texto || "[Vacío]";
+            document.getElementById('monitor-text').innerText = texto || "[Pantalla Limpia]";
             document.getElementById('monitor-ref').innerText = referencia;
             if (ventanaProyector && !ventanaProyector.closed) {
                 ventanaProyector.document.getElementById('texto').innerText = texto;
@@ -321,154 +375,72 @@
             }
         }
 
-        // --- FETCH INTELIGENTE RESISTENTE A FALLOS CORS / TIMEOUT ---
-        async function fetchConRespaldo(urlOriginal) {
-            // Intentar primero con el proxy de AllOrigins con control estricto de tiempo
-            try {
-                const controlador = new AbortController();
-                const timeoutId = setTimeout(() => controlador.abort(), 4500); // 4.5 segundos máx
-                
-                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(urlOriginal)}`, { signal: controlador.signal });
-                clearTimeout(timeoutId);
-                const obj = await res.json();
-                return JSON.parse(obj.contents);
-            } catch (e) {
-                console.log("AllOrigins falló o dio timeout, usando proxy de respaldo...");
-            }
+        // --- SISTEMA 100% MANUAL DE ALABANZAS LOCALES ---
+        function guardarCancionManual() {
+            const titulo = document.getElementById('song-title').value.trim();
+            const letra = document.getElementById('song-lyrics').value.trim();
+            if(!titulo || !letra) return alert("Por favor escribe el título y el cuerpo de las estrofas.");
 
-            // Proxy de Respaldo 2: CorsProxy.io
-            try {
-                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(urlOriginal)}`);
-                return await res.json();
-            } catch(e) {
-                console.log("Proxy secundario falló, ejecutando extracción directa sin cabeceras...");
-            }
+            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
+            canciones.push({ id: Date.now(), titulo, letra });
+            localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
 
-            // Intento final: Directo (Funcionará si el servidor destino quitó temporalmente la restricción)
-            const resDirecto = await fetch(urlOriginal);
-            return await resDirecto.json();
+            document.getElementById('song-title').value = "";
+            document.getElementById('song-lyrics').value = "";
+            
+            alert(`¡Alabanza "${titulo}" guardada correctamente de forma interna!`);
+            buscarAlabanzasNavegador();
         }
 
-        // --- BUSCADOR OPTIMIZADO ---
-        async function buscarAlabanzasEnWeb() {
-            const query = document.getElementById('web-search-query').value.trim();
-            const webResultsList = document.getElementById('web-search-results');
-            if(!query) return alert("Por favor escribe el nombre de una alabanza.");
+        function buscarAlabanzasNavegador() {
+            const lista = document.getElementById('lista-canciones-db');
+            lista.innerHTML = "";
+            const query = document.getElementById('search-songs-input').value.toLowerCase();
+            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
 
-            webResultsList.innerHTML = "<li>🔍 Buscando en red segura sin bloqueos...</li>";
-
-            try {
-                const urlOriginal = `https://api.lyrics.ovh/suggest/${encodeURIComponent(query)}`;
-                const datos = await fetchConRespaldo(urlOriginal);
-
-                if(!datos || !datos.data || datos.data.length === 0) {
-                    webResultsList.innerHTML = "<li>❌ No se encontraron coincidencias en internet.</li>";
-                    return;
-                }
-
-                webResultsList.innerHTML = "";
-                datos.data.slice(0, 5).forEach((item, index) => {
-                    let li = document.createElement('li');
-                    li.style.fontSize = "0.9rem";
-                    li.innerHTML = `
-                        <div><strong>${item.title}</strong> - <span style="color:#94a3b8;">${item.artist.name}</span></div>
-                        <button id="btn-web-${index}" class="btn btn-success" style="padding:4px 8px; font-size:0.75rem;" onclick="descargarEImportarLetra('${item.artist.name}', '${item.title}', 'btn-web-${index}')">📥 Descargar</button>
-                    `;
-                    webResultsList.appendChild(li);
-                });
-
-            } catch (error) {
-                webResultsList.innerHTML = "<li>❌ Servidores de música ocupados. Intente nuevamente en unos segundos.</li>";
+            let filtradas = canciones.filter(c => c.titulo.toLowerCase().includes(query) || c.letra.toLowerCase().includes(query));
+            
+            if(filtradas.length === 0) {
+                lista.innerHTML = `<li style="color:var(--text-muted); font-size:0.9rem;">Ninguna alabanza guardada coincide con tu búsqueda.</li>`;
+                return;
             }
+
+            filtradas.forEach(canto => {
+                let li = document.createElement('li');
+                li.innerHTML = `<span>🎵 <strong>${canto.titulo}</strong></span> <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="eliminarCanto(${canto.id}, event)">Eliminar</button>`;
+                li.onclick = () => prepararSegmentosProyeccion(canto.letra, canto.titulo);
+                lista.appendChild(li);
+            });
         }
 
-        async function descargarEImportarLetra(artista, tituloCanto, botonId) {
-            const boton = document.getElementById(botonId);
-            const textoOriginal = boton.innerText;
-            boton.innerText = "⚡...";
-            boton.disabled = true;
-
-            try {
-                const urlOriginal = `https://api.lyrics.ovh/v1/${encodeURIComponent(artista)}/${encodeURIComponent(tituloCanto)}`;
-                const data = await fetchConRespaldo(urlOriginal);
-
-                if(!data || !data.lyrics) {
-                    alert(`La letra de "${tituloCanto}" no se encuentra digitalizada en la base de datos libre. Puedes agregarla manualmente abajo.`);
-                    boton.innerText = textoOriginal;
-                    boton.disabled = false;
-                    return;
-                }
-
-                let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
-                canciones.push({
-                    id: Date.now(),
-                    titulo: `${tituloCanto} (${artista})`,
-                    letra: data.lyrics.replace(/\r\n/g, '\n')
-                });
-                localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
-                
-                alert(`¡Alabanza "${tituloCanto}" guardada en tu repertorio!`);
-                boton.innerText = "✅ Listo";
-                buscarAlabanzasNavegador(); 
-            } catch (e) {
-                alert("El servidor de descarga tardó demasiado en responder. Por favor, intente con otra versión del canto de la lista.");
-                boton.innerText = textoOriginal;
-                boton.disabled = false;
-            }
+        function eliminarCanto(id, e) {
+            e.stopPropagation();
+            if(!confirm("¿Seguro que deseas eliminar esta alabanza de tu base de datos?")) return;
+            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
+            canciones = canciones.filter(c => c.id !== id);
+            localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
+            buscarAlabanzasNavegador();
         }
 
-        // --- PROCESAMIENTO MULTIMEDIA ---
-        function procesarArchivoFondo(evento) {
-            const archivo = evento.target.files[0];
-            if (!archivo) return;
-            if (mediaFondoUrl) URL.revokeObjectURL(mediaFondoUrl);
-
-            mediaFondoTipo = archivo.type.startsWith('video/') ? 'video' : 'image';
-            mediaFondoUrl = URL.createObjectURL(archivo);
-
-            const monitorBox = document.getElementById('panel-monitor');
-            const monitorVideo = document.getElementById('monitor-video');
-
-            if (mediaFondoTipo === 'video') {
-                monitorBox.style.backgroundImage = 'none';
-                monitorVideo.src = mediaFondoUrl;
-                monitorVideo.style.display = 'block';
-                monitorVideo.play();
-            } else {
-                monitorVideo.style.display = 'none';
-                monitorBox.style.backgroundImage = `url('${mediaFondoUrl}')`;
-            }
-            aplicarFondoEnProyector();
+        function prepararSegmentosProyeccion(textoCompleto, titulo) {
+            const colaDiv = document.getElementById('live-segments-queue');
+            colaDiv.innerHTML = "";
+            const estrofas = textoCompleto.split(/\n\n+/);
+            
+            estrofas.forEach((estrofa, index) => {
+                let btn = document.createElement('button');
+                btn.className = "menu-btn";
+                btn.style.padding = "12px";
+                btn.style.fontSize = "0.9rem";
+                btn.style.lineHeight = "1.3";
+                btn.innerText = `[Estrofa ${index + 1}]\n${estrofa}`;
+                btn.onclick = () => enviarProyeccion(estrofa, titulo);
+                colaDiv.appendChild(btn);
+            });
+            enviarProyeccion(estrofas[0], titulo);
         }
 
-        function aplicarFondoEnProyector() {
-            if (ventanaProyector && !ventanaProyector.closed) {
-                const pBody = ventanaProyector.document.body;
-                const pVideo = ventanaProyector.document.getElementById('bg-video');
-                if (mediaFondoTipo === 'video') {
-                    pBody.style.backgroundImage = 'none';
-                    pVideo.src = mediaFondoUrl; pVideo.style.display = 'block'; pVideo.play().catch(e => {});
-                } else {
-                    pVideo.style.display = 'none'; pVideo.src = '';
-                    pBody.style.backgroundImage = `url('${mediaFondoUrl}')`; pBody.style.backgroundSize = 'cover'; pBody.style.backgroundPosition = 'center';
-                }
-            }
-        }
-
-        function cambiarFondoColor(colorHex) {
-            if (mediaFondoUrl) { URL.revokeObjectURL(mediaFondoUrl); mediaFondoUrl = null; }
-            document.getElementById('monitor-video').style.display = 'none';
-            document.getElementById('panel-monitor').style.backgroundImage = 'none';
-            document.getElementById('panel-monitor').style.backgroundColor = colorHex;
-            if (ventanaProyector && !ventanaProyector.closed) {
-                const pVideo = ventanaProyector.document.getElementById('bg-video');
-                pVideo.style.display = 'none'; pVideo.src = '';
-                ventanaProyector.document.body.style.backgroundImage = 'none';
-                ventanaProyector.document.body.style.backgroundColor = colorHex;
-            }
-        }
-
-        // --- CONTROL DE LA BIBLIA ---
+        // --- CONTROL DE LA BIBLIA INTERNA (TEXTO) ---
         function inicializarFiltrosBiblia() {
             const selectLibro = document.getElementById('bible-book');
             selectLibro.innerHTML = "";
@@ -514,7 +486,19 @@
                 let li = document.createElement('li');
                 li.setAttribute('data-verse', numVersiculo);
                 li.innerHTML = `<strong>${numVersiculo}.</strong> ${textoVersiculo}`;
-                li.onclick = () => enviarProyeccion(textoVersiculo, `${libro.name} ${parseInt(capIdx)+1}:${numVersiculo}`);
+                li.onclick = () => {
+                    const cita = `${libro.name} ${parseInt(capIdx)+1}:${numVersiculo}`;
+                    enviarProyeccion(textoVersiculo, cita);
+                    
+                    // Colocar en cola derecha para acceso rápido
+                    const colaDiv = document.getElementById('live-segments-queue');
+                    colaDiv.innerHTML = "";
+                    let btn = document.createElement('button');
+                    btn.className = "menu-btn"; btn.style.padding = "10px";
+                    btn.innerHTML = `<strong style="color:var(--warning)">${cita}:</strong><br>${textoVersiculo}`;
+                    btn.onclick = () => enviarProyeccion(textoVersiculo, cita);
+                    colaDiv.appendChild(btn);
+                };
                 listaResultados.appendChild(li);
             });
         }
@@ -526,93 +510,7 @@
             });
         }
 
-        function cargarArchivoBiblia(evento) {
-            const archivo = evento.target.files[0];
-            if (!archivo) return;
-            const lector = new FileReader();
-            lector.onload = function(e) {
-                const contenido = e.target.result;
-                try {
-                    baseDatosBiblia = JSON.parse(contenido);
-                    alert("Biblia externa cargada.");
-                    inicializarFiltrosBiblia();
-                } catch (err) {
-                    procesarBiPlano(contenido);
-                }
-            };
-            lector.readAsText(archivo);
-        }
-
-        function procesarBiPlano(textoPlano) {
-            try {
-                const lineas = textoPlano.split('\n');
-                let librosMapeados = {};
-                lineas.forEach(linea => {
-                    if(!linea.trim() || !linea.includes('|')) return;
-                    let [libro, cap, ver, texto] = linea.split('|');
-                    if(!librosMapeados[libro]) librosMapeados[libro] = { name: libro, chapters: [] };
-                    let cIdx = parseInt(cap) - 1;
-                    if(!librosMapeados[libro].chapters[cIdx]) librosMapeados[libro].chapters[cIdx] = [];
-                    librosMapeados[libro].chapters[cIdx].push(texto.trim());
-                });
-                baseDatosBiblia = Object.values(librosMapeados);
-                if(baseDatosBiblia.length > 0) { alert("Archivo .bi importado con éxito."); inicializarFiltrosBiblia(); }
-                else { throw new Error(); }
-            } catch(e) { alert("Estructura de archivo no reconocida."); }
-        }
-
-        // --- MANEJO MANUAL Y FILTRADO LOCAL ---
-        function guardarCancionManual() {
-            const titulo = document.getElementById('song-title').value.trim();
-            const letra = document.getElementById('song-lyrics').value.trim();
-            if(!titulo || !letra) return alert("Complete los campos.");
-
-            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
-            canciones.push({ id: Date.now(), titulo, letra });
-            localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
-
-            document.getElementById('song-title').value = "";
-            document.getElementById('song-lyrics').value = "";
-            buscarAlabanzasNavegador();
-        }
-
-        function buscarAlabanzasNavegador() {
-            const lista = document.getElementById('lista-canciones-db');
-            lista.innerHTML = "";
-            const query = document.getElementById('search-songs-input').value.toLowerCase();
-            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
-
-            let filtradas = canciones.filter(c => c.titulo.toLowerCase().includes(query) || c.letra.toLowerCase().includes(query));
-            filtradas.forEach(canto => {
-                let li = document.createElement('li');
-                li.innerHTML = `<span>🎵 <strong>${canto.titulo}</strong></span> <button class="btn btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="eliminarCanto(${canto.id}, event)">Eliminar</button>`;
-                li.onclick = () => prepararSegmentosProyeccion(canto.letra, canto.titulo);
-                lista.appendChild(li);
-            });
-        }
-
-        function eliminarCanto(id, e) {
-            e.stopPropagation();
-            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
-            canciones = canciones.filter(c => c.id !== id);
-            localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
-            buscarAlabanzasNavegador();
-        }
-
-        function prepararSegmentosProyeccion(textoCompleto, titulo) {
-            const colaDiv = document.getElementById('live-segments-queue');
-            colaDiv.innerHTML = "";
-            const estrofas = textoCompleto.split(/\n\n+/);
-            estrofas.forEach((estrofa, index) => {
-                let btn = document.createElement('button');
-                btn.className = "menu-btn"; btn.style.padding = "8px"; btn.style.fontSize = "0.85rem";
-                btn.innerText = `Estrofa ${index + 1}:\n${estrofa.substring(0, 45)}...`;
-                btn.onclick = () => enviarProyeccion(estrofa, titulo);
-                colaDiv.appendChild(btn);
-            });
-            enviarProyeccion(estrofas[0], titulo);
-        }
-
+        // --- GESTIÓN DE INTERFAZ Y MULTIMEDIA ---
         function cambiarModulo(moduloId, boton) {
             document.querySelectorAll('.module-section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
@@ -620,7 +518,55 @@
             boton.classList.add('active');
         }
 
-        // Inicialización de la aplicación
+        function procesarArchivoFondo(evento) {
+            const archivo = evento.target.files[0];
+            if (!archivo) return;
+            if (mediaFondoUrl) URL.revokeObjectURL(mediaFondoUrl);
+
+            mediaFondoTipo = archivo.type.startsWith('video/') ? 'video' : 'image';
+            mediaFondoUrl = URL.createObjectURL(archivo);
+
+            const monitorBox = document.getElementById('panel-monitor');
+            const monitorVideo = document.getElementById('monitor-video');
+
+            if (mediaFondoTipo === 'video') {
+                monitorBox.style.backgroundImage = 'none';
+                monitorVideo.src = mediaFondoUrl; monitorVideo.style.display = 'block'; monitorVideo.play();
+            } else {
+                monitorVideo.style.display = 'none';
+                monitorBox.style.backgroundImage = `url('${mediaFondoUrl}')`;
+            }
+            aplicarFondoEnProyector();
+        }
+
+        function aplicarFondoEnProyector() {
+            if (ventanaProyector && !ventanaProyector.closed) {
+                const pBody = ventanaProyector.document.body;
+                const pVideo = ventanaProyector.document.getElementById('bg-video');
+                if (mediaFondoTipo === 'video') {
+                    pBody.style.backgroundImage = 'none';
+                    pVideo.src = mediaFondoUrl; pVideo.style.display = 'block'; pVideo.play().catch(e => {});
+                } else {
+                    pVideo.style.display = 'none'; pVideo.src = '';
+                    pBody.style.backgroundImage = `url('${mediaFondoUrl}')`; pBody.style.backgroundSize = 'cover'; pBody.style.backgroundPosition = 'center';
+                }
+            }
+        }
+
+        function cambiarFondoColor(colorHex) {
+            if (mediaFondoUrl) { URL.revokeObjectURL(mediaFondoUrl); mediaFondoUrl = null; }
+            document.getElementById('monitor-video').style.display = 'none';
+            document.getElementById('panel-monitor').style.backgroundImage = 'none';
+            document.getElementById('panel-monitor').style.backgroundColor = colorHex;
+            if (ventanaProyector && !ventanaProyector.closed) {
+                const pVideo = ventanaProyector.document.getElementById('bg-video');
+                pVideo.style.display = 'none'; pVideo.src = '';
+                ventanaProyector.document.body.style.backgroundImage = 'none';
+                ventanaProyector.document.body.style.backgroundColor = colorHex;
+            }
+        }
+
+        // Ejecución al iniciar
         inicializarFiltrosBiblia();
         buscarAlabanzasNavegador();
     </script>
