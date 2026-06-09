@@ -162,7 +162,7 @@
 
             <!-- SECCIÓN CANCIONES -->
             <div id="mod-canciones" class="module-section">
-                <h3>🌐 Buscador de Alabanzas en la Web (Sin Bloqueo 404)</h3>
+                <h3>🌐 Buscador Inteligente Web (Multi-Proxy AntiCORS)</h3>
                 <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 10px; margin-bottom: 15px;">
                     <input type="text" id="web-search-query" placeholder="Escribe el nombre de la alabanza..." style="background: var(--bg-input); border: 1px solid #475569; padding: 12px; border-radius: 6px; color: white;">
                     <button class="btn btn-warning" onclick="buscarAlabanzasEnWeb()">🔍 Buscar Web</button>
@@ -321,51 +321,81 @@
             }
         }
 
-        // --- SECCIÓN WEB INTEGRADA MEDIANTE SERVIDOR PROXY ANTIBLOQUEOS ---
+        // --- FETCH INTELIGENTE RESISTENTE A FALLOS CORS / TIMEOUT ---
+        async function fetchConRespaldo(urlOriginal) {
+            // Intentar primero con el proxy de AllOrigins con control estricto de tiempo
+            try {
+                const controlador = new AbortController();
+                const timeoutId = setTimeout(() => controlador.abort(), 4500); // 4.5 segundos máx
+                
+                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(urlOriginal)}`, { signal: controlador.signal });
+                clearTimeout(timeoutId);
+                const obj = await res.json();
+                return JSON.parse(obj.contents);
+            } catch (e) {
+                console.log("AllOrigins falló o dio timeout, usando proxy de respaldo...");
+            }
+
+            // Proxy de Respaldo 2: CorsProxy.io
+            try {
+                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(urlOriginal)}`);
+                return await res.json();
+            } catch(e) {
+                console.log("Proxy secundario falló, ejecutando extracción directa sin cabeceras...");
+            }
+
+            // Intento final: Directo (Funcionará si el servidor destino quitó temporalmente la restricción)
+            const resDirecto = await fetch(urlOriginal);
+            return await resDirecto.json();
+        }
+
+        // --- BUSCADOR OPTIMIZADO ---
         async function buscarAlabanzasEnWeb() {
             const query = document.getElementById('web-search-query').value.trim();
             const webResultsList = document.getElementById('web-search-results');
             if(!query) return alert("Por favor escribe el nombre de una alabanza.");
 
-            webResultsList.innerHTML = "<li>🔍 Buscando letras en la red (CORS Proxy Activo)...</li>";
+            webResultsList.innerHTML = "<li>🔍 Buscando en red segura sin bloqueos...</li>";
 
             try {
-                // Usando un proxy público seguro para esquivar las restricciones de red locales
                 const urlOriginal = `https://api.lyrics.ovh/suggest/${encodeURIComponent(query)}`;
-                const respuesta = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(urlOriginal)}`);
-                const objetoProxy = await respuesta.json();
-                const datos = JSON.parse(objetoProxy.contents);
+                const datos = await fetchConRespaldo(urlOriginal);
 
-                if(!datos.data || datos.data.length === 0) {
-                    webResultsList.innerHTML = "<li>❌ No se encontraron coincidencias. Prueba con otras palabras clave.</li>";
+                if(!datos || !datos.data || datos.data.length === 0) {
+                    webResultsList.innerHTML = "<li>❌ No se encontraron coincidencias en internet.</li>";
                     return;
                 }
 
                 webResultsList.innerHTML = "";
-                datos.data.slice(0, 5).forEach(item => {
+                datos.data.slice(0, 5).forEach((item, index) => {
                     let li = document.createElement('li');
                     li.style.fontSize = "0.9rem";
                     li.innerHTML = `
                         <div><strong>${item.title}</strong> - <span style="color:#94a3b8;">${item.artist.name}</span></div>
-                        <button class="btn btn-success" style="padding:4px 8px; font-size:0.75rem;" onclick="descargarEImportarLetra('${item.artist.name}', '${item.title}')">📥 Descargar</button>
+                        <button id="btn-web-${index}" class="btn btn-success" style="padding:4px 8px; font-size:0.75rem;" onclick="descargarEImportarLetra('${item.artist.name}', '${item.title}', 'btn-web-${index}')">📥 Descargar</button>
                     `;
                     webResultsList.appendChild(li);
                 });
 
             } catch (error) {
-                webResultsList.innerHTML = "<li>❌ Error de red. Asegúrate de tener conexión a internet estable.</li>";
+                webResultsList.innerHTML = "<li>❌ Servidores de música ocupados. Intente nuevamente en unos segundos.</li>";
             }
         }
 
-        async function descargarEImportarLetra(artista, tituloCanto) {
+        async function descargarEImportarLetra(artista, tituloCanto, botonId) {
+            const boton = document.getElementById(botonId);
+            const textoOriginal = boton.innerText;
+            boton.innerText = "⚡...";
+            boton.disabled = true;
+
             try {
                 const urlOriginal = `https://api.lyrics.ovh/v1/${encodeURIComponent(artista)}/${encodeURIComponent(tituloCanto)}`;
-                const respuesta = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(urlOriginal)}`);
-                const objetoProxy = await respuesta.json();
-                const data = JSON.parse(objetoProxy.contents);
+                const data = await fetchConRespaldo(urlOriginal);
 
-                if(!data.lyrics) {
-                    alert("No se localizó el texto estructurado para este canto. Pruebe otra opción.");
+                if(!data || !data.lyrics) {
+                    alert(`La letra de "${tituloCanto}" no se encuentra digitalizada en la base de datos libre. Puedes agregarla manualmente abajo.`);
+                    boton.innerText = textoOriginal;
+                    boton.disabled = false;
                     return;
                 }
 
@@ -377,10 +407,13 @@
                 });
                 localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
                 
-                alert(`¡Alabanza "${tituloCanto}" descargada con éxito en tu base local!`);
+                alert(`¡Alabanza "${tituloCanto}" guardada en tu repertorio!`);
+                boton.innerText = "✅ Listo";
                 buscarAlabanzasNavegador(); 
             } catch (e) {
-                alert("Ocurrió un contratiempo al procesar la descarga de la letra.");
+                alert("El servidor de descarga tardó demasiado en responder. Por favor, intente con otra versión del canto de la lista.");
+                boton.innerText = textoOriginal;
+                boton.disabled = false;
             }
         }
 
