@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyector Eclesial Pro</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #0284c7;
+            --bg: #f8fafc;
+            --text: #0f172a;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0; padding: 0;
+            background: var(--bg); color: var(--text);
+            display: grid; grid-template-rows: auto 1fr; height: 100vh;
+        }
+        header {
+            background: var(--primary); color: white;
+            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .btn {
+            background: var(--accent); color: white; border: none;
+            padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;
+        }
+        .btn-danger { background: #ef4444; }
+        .btn-success { background: #22c55e; }
+        
+        main {
+            display: grid; grid-template-columns: 280px 1fr 350px;
+            gap: 15px; padding: 15px; overflow: hidden;
+        }
+        .sidebar {
+            background: white; padding: 15px; border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 10px;
+        }
+        .menu-btn {
+            background: #f1f5f9; border: 1px solid #cbd5e1; padding: 12px;
+            border-radius: 6px; cursor: pointer; text-align: left; font-size: 1rem;
+        }
+        .menu-btn.active { background: var(--accent); color: white; }
+
+        .content-panel {
+            background: white; padding: 20px; border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;
+        }
+        .module-section { display: none; }
+        .module-section.active { display: block; }
+
+        /* Formularios */
+        .form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 5px; }
+        .form-group input, .form-group textarea, .form-group select {
+            padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 1rem;
+        }
+
+        /* Listas de datos */
+        .data-list { list-style: none; padding: 0; margin-top: 15px; }
+        .data-list li {
+            background: #f1f5f9; padding: 10px; margin-bottom: 8px;
+            border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        .data-list li:hover { background: #e2e8f0; }
+
+        /* Panel de Control de Proyección */
+        .preview-panel {
+            background: #0f172a; color: white; padding: 15px;
+            border-radius: 8px; display: flex; flex-direction: column; gap: 15px;
+        }
+        .monitor-box {
+            background: black; border: 2px solid #334155; height: 180px;
+            border-radius: 4px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center; padding: 10px;
+        }
+        #monitor-text { font-size: 1.1rem; font-weight: bold; }
+        #monitor-ref { color: #f59e0b; margin-top: 5px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>⛪ Proyector Eclesial Multi-Pantalla</h2>
+        <div>
+            <button class="btn btn-success" onclick="abrirPantallaProyector()">📺 Abrir Pantalla Proyector</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="sidebar">
+            <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Biblia JSON</button>
+            <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Alabanzas (DB)</button>
+            <button class="menu-btn" onclick="cambiarModulo('anuncios', this)">📢 Anuncios (DB)</button>
+        </div>
+
+        <div class="content-panel">
+            
+            <div id="mod-biblia" class="module-section active">
+                <h3>Cargar Base de Datos de la Biblia</h3>
+                <div class="form-group">
+                    <label>Selecciona tu archivo de Biblia (.json):</label>
+                    <input type="file" id="bible-file" accept=".json" onchange="cargarBiblia(event)">
+                </div>
+                <hr>
+                <h3>Buscador en Tiempo Real</h3>
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px;">
+                    <select id="bible-book" onchange="actualizarCapitulos()"><option>Carga un archivo JSON primero</option></select>
+                    <select id="bible-chapter" onchange="buscarVersiculos()"><option>Cap</option></select>
+                    <input type="number" id="bible-verse-num" placeholder="Ver." oninput="filtrarVersiculoEspecifico()">
+                </div>
+                <ul class="data-list" id="bible-results"></ul>
+            </div>
+
+            <div id="mod-canciones" class="module-section">
+                <h3>Gestionar Alabanzas</h3>
+                <div class="form-group">
+                    <input type="text" id="song-title" placeholder="Título del Himno / Canto">
+                    <textarea id="song-lyrics" rows="4" placeholder="Escribe las estrofas o coros marcando divisiones..."></textarea>
+                    <button class="btn" onclick="guardarCancion()">💾 Guardar en Base de Datos</button>
+                </div>
+                <ul class="data-list" id="lista-canciones-db"></ul>
+            </div>
+
+            <div id="mod-anuncios" class="module-section">
+                <h3>Gestionar Anuncios</h3>
+                <div class="form-group">
+                    <input type="text" id="notice-title" placeholder="Título del Anuncio (ej: Jóvenes)">
+                    <textarea id="notice-text" rows="3" placeholder="Contenido del anuncio..."></textarea>
+                    <button class="btn" onclick="guardarAnuncio()">💾 Guardar Anuncio</button>
+                </div>
+                <ul class="data-list" id="lista-anuncios-db"></ul>
+            </div>
+
+        </div>
+
+        <div class="preview-panel">
+            <h3>Monitor de Control</h3>
+            <div class="monitor-box">
+                <div id="monitor-text">Pantalla Lista</div>
+                <div id="monitor-ref">Iglesia</div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-danger" style="flex:1" onclick="enviarProyeccion('', '')">🚫 Limpiar</button>
+                <button class="btn" style="background:#475569" onclick="cambiarFondoProyector('#000000')">⚫ Negro</button>
+                <button class="btn" style="background:#1e3a8a" onclick="cambiarFondoProyector('#1e3a8a')">🔵 Azul</button>
+            </div>
+            <hr style="border-color: #334155;">
+            <h4>Estrofas / Segmentos en cola:</h4>
+            <div id="live-segments-queue" style="display:flex; flex-direction:column; gap:5px;">
+                </div>
+        </div>
+    </main>
+
+    <script>
+        // --- VARIABLES GLOBALES ---
+        let ventanaProyector = null;
+        let baseDatosBiblia = null;
+
+        // --- SISTEMA DE DOBLE PANTALLA ---
+        function abrirPantallaProyector() {
+            // Abre una ventana limpia diseñada para arrastrar al proyector (HDMI 2)
+            ventanaProyector = window.open("", "ProyectorEclesial_Pantalla", "width=800,height=600,menubar=no,toolbar=no,location=no,status=no");
+            
+            // Escribimos el HTML y estilos optimizados para el proyector dentro de la nueva ventana
+            ventanaProyector.document.write(`
+                <html>
+                <head>
+                    <title>PROYECTOR - PANTALLA VIVA</title>
+                    <style>
+                        body {
+                            margin: 0; background-color: black; color: white;
+                            font-family: 'Arial', sans-serif; overflow: hidden;
+                            display: flex; flex-direction: column; justify-content: center;
+                            align-items: center; text-align: center; height: 100vh;
+                            transition: background 0.3s;
+                        }
+                        #texto {
+                            font-size: 4.5rem; font-weight: bold; width: 90%;
+                            line-height: 1.3; text-shadow: 3px 3px 10px rgba(0,0,0,0.9);
+                            white-space: pre-line;
+                        }
+                        #referencia {
+                            font-size: 2.5rem; margin-top: 30px; color: #f59e0b;
+                            text-shadow: 2px 2px 5px rgba(0,0,0,0.9); font-weight: 500;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div id="texto">Bienvenidos</div>
+                    <div id="referencia"></div>
+                </body>
+                </html>
+            `);
+            ventanaProyector.document.close();
+        }
+
+        function enviarProyeccion(texto, referencia) {
+            // Actualiza el monitor del operador
+            document.getElementById('monitor-text').innerText = texto || "[Pantalla Vacía]";
+            document.getElementById('monitor-ref').innerText = referencia;
+
+            // Envía los datos a la ventana externa si está abierta
+            if (ventanaProyector && !ventanaProyector.closed) {
+                ventanaProyector.document.getElementById('texto').innerText = texto;
+                ventanaProyector.document.getElementById('referencia').innerText = referencia;
+            }
+        }
+
+        function cambiarFondoProyector(colorHex) {
+            if (ventanaProyector && !ventanaProyector.closed) {
+                ventanaProyector.document.body.style.backgroundImage = 'none';
+                ventanaProyector.document.body.style.backgroundColor = colorHex;
+            }
+        }
+
+        // --- NAVEGACIÓN ---
+        function cambiarModulo(moduloId, boton) {
+            document.querySelectorAll('.module-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('mod-' + moduloId).classList.add('active');
+            boton.classList.add('active');
+        }
+
+        // --- MOTOR DE BIBLIA JSON ---
+        function cargarBiblia(evento) {
+            const archivo = evento.target.files[0];
+            if (!archivo) return;
+            
+            const lector = new FileReader();
+            lector.onload = function(e) {
+                try {
+                    baseDatosBiblia = JSON.parse(e.target.result);
+                    alert("¡Biblia cargada con éxito!");
+                    inicializarFiltrosBiblia();
+                } catch (error) {
+                    alert("Error al leer el archivo JSON de la Biblia. Asegúrate de que tenga el formato correcto.");
+                }
+            };
+            lector.readAsText(archivo);
+        }
+
+        function inicializarFiltrosBiblia() {
+            const selectLibro = document.getElementById('bible-book');
+            selectLibro.innerHTML = "";
+            
+            // Adaptado para estructuras JSON comunes de Biblias (Array de libros)
+            baseDatosBiblia.forEach((libro, index) => {
+                let option = document.createElement('option');
+                option.value = index;
+                option.innerText = libro.name;
+                selectLibro.appendChild(option);
+            });
+            actualizarCapitulos();
+        }
+
+        function actualizarCapitulos() {
+            const libroIdx = document.getElementById('bible-book').value;
+            const selectCap = document.getElementById('bible-chapter');
+            selectCap.innerHTML = "";
+
+            const libro = baseDatosBiblia[libroIdx];
+            libro.chapters.forEach((cap, index) => {
+                let option = document.createElement('option');
+                option.value = index;
+                option.innerText = `Cap. ${index + 1}`;
+                selectCap.appendChild(option);
+            });
+            buscarVersiculos();
+        }
+
+        function buscarVersiculos() {
+            const libroIdx = document.getElementById('bible-book').value;
+            const capIdx = document.getElementById('bible-chapter').value;
+            const listaResultados = document.getElementById('bible-results');
+            listaResultados.innerHTML = "";
+
+            const libro = baseDatosBiblia[libroIdx];
+            const capitulo = libro.chapters[capIdx];
+
+            // 'capitulo' suele ser un array de strings (versículos) o objetos
+            capitulo.forEach((versiculo, index) => {
+                let textoVersiculo = typeof versiculo === 'object' ? versiculo.text : versiculo;
+                let numVersiculo = index + 1;
+
+                let li = document.createElement('li');
+                li.setAttribute('data-verse', numVersiculo);
+                li.innerHTML = `<strong>${numVersiculo}.</strong> ${textoVersiculo}`;
+                li.onclick = () => enviarProyeccion(textoVersiculo, `${libro.name} ${parseInt(capIdx)+1}:${numVersiculo}`);
+                listaResultados.appendChild(li);
+            });
+        }
+
+        function filtrarVersiculoSpecifico() {
+            const vNum = document.getElementById('bible-verse-num').value;
+            const items = document.querySelectorAll('#bible-results li');
+            items.forEach(item => {
+                if(vNum === "" || item.getAttribute('data-verse') === vNum) {
+                    item.style.display = "flex";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        }
+
+        // --- PERSISTENCIA DE DATOS (LOCALSTORAGE) ---
+        
+        // --- MÓDULO CANCIONES ---
+        function guardarCancion() {
+            const titulo = document.getElementById('song-title').value.trim();
+            const letra = document.getElementById('song-lyrics').value.trim();
+            if(!titulo || !letra) return alert("Completa los campos");
+
+            let canciones = JSON.parse(localStorage.getItem('iglesia_canciones')) || [];
+            canciones.push({ id: Date.now(), titulo, letra });
+            localStorage.setItem('iglesia_canciones', JSON.stringify(canciones));
+
+            document.getElementById('song-title').value = "";
+            document.getElementById('song-lyrics').value = "";
+            listarCanciones();
+        }
+
+        function listarCanciones() {
+            const lista = document.getElementById('lista-canciones-db');
+            lista.innerHTML = "";
+            let canciones = JSON.parse(localStorage.getItem('iglesia_canciones')) || [];
+
+            canciones.forEach(canto => {
+                let li = document.createElement('li');
+                li.innerHTML = `<span>🎵 ${canto.titulo}</span> <button class="btn btn-danger" style="padding:4px 8px" onclick="eliminarCanto(${canto.id}, event)">❌</button>`;
+                li.onclick = () => prepararSegmentosProyeccion(canto.letra, canto.titulo);
+                lista.appendChild(li);
+            });
+        }
+
+        function eliminarCanto(id, e) {
+            e.stopPropagation(); // Evita que se dispare el click del renglón entero
+            let canciones = JSON.parse(localStorage.getItem('iglesia_canciones')) || [];
+            canciones = canciones.filter(c => c.id !== id);
+            localStorage.setItem('iglesia_canciones', JSON.stringify(canciones));
+            listarCanciones();
+        }
+
+        function prepararSegmentosProyeccion(textoCompleto, titulo) {
+            const colaDiv = document.getElementById('live-segments-queue');
+            colaDiv.innerHTML = "";
+
+            // Dividimos el canto por doble salto de línea (párrafos / estrofas)
+            const estrofas = textoCompleto.split(/\n\n+/);
+            
+            estrofas.forEach((estrofa, index) => {
+                let btn = document.createElement('button');
+                btn.className = "menu-btn";
+                btn.style.fontSize = "0.9rem";
+                btn.innerText = `[Part ${index+1}]\n${estrofa.substring(0, 40)}...`;
+                btn.onclick = () => enviarProyeccion(estrofa, titulo);
+                colaDiv.appendChild(btn);
+            });
+            
+            // Proyecta la primera estrofa por defecto
+            enviarProyeccion(estrofas[0], titulo);
+        }
+
+        // --- MÓDULO ANUNCIOS ---
+        function guardarAnuncio() {
+            const titulo = document.getElementById('notice-title').value.trim();
+            const texto = document.getElementById('notice-text').value.trim();
+            if(!titulo || !texto) return alert("Completa los campos");
+
+            let anuncios = JSON.parse(localStorage.getItem('iglesia_anuncios')) || [];
+            anuncios.push({ id: Date.now(), titulo, texto });
+            localStorage.setItem('iglesia_anuncios', JSON.stringify(anuncios));
+
+            document.getElementById('notice-title').value = "";
+            document.getElementById('notice-text').value = "";
+            listarAnuncios();
+        }
+
+        function listarAnuncios() {
+            const lista = document.getElementById('lista-anuncios-db');
+            lista.innerHTML = "";
+            let anuncios = JSON.parse(localStorage.getItem('iglesia_anuncios')) || [];
+
+            anuncios.forEach(anuncio => {
+                let li = document.createElement('li');
+                li.innerHTML = `<span>📢 ${anuncio.titulo}</span> <button class="btn btn-danger" style="padding:4px 8px" onclick="eliminarAnuncio(${anuncio.id}, event)">❌</button>`;
+                li.onclick = () => enviarProyeccion(anuncio.text || anuncio.texto, "Anuncio");
+                lista.appendChild(li);
+            });
+        }
+
+        function eliminarAnuncio(id, e) {
+            e.stopPropagation();
+            let anuncios = JSON.parse(localStorage.getItem('iglesia_anuncios')) || [];
+            anuncios = anuncios.filter(a => a.id !== id);
+            localStorage.setItem('iglesia_anuncios', JSON.stringify(anuncios));
+            listarAnuncios();
+        }
+
+        // Al iniciar la aplicación, cargamos lo que esté guardado en memoria local
+        listarCanciones();
+        listarAnuncios();
+    </script>
+</body>
+</html>
