@@ -15,6 +15,7 @@
             --text-muted: #94a3b8;     /* Slate 400 */
             --danger: #ef4444;
             --success: #22c55e;
+            --warning: #f59e0b;
         }
 
         body {
@@ -50,6 +51,8 @@
         .btn-danger:hover { background: #dc2626; }
         .btn-success { background: var(--success); }
         .btn-success:hover { background: #16a34a; }
+        .btn-warning { background: var(--warning); color: #020617; }
+        .btn-warning:hover { background: #d97706; }
         
         /* LAYOUT PRINCIPAL */
         main {
@@ -85,16 +88,6 @@
         .form-group input, .form-group textarea, .form-group select {
             background: var(--bg-input); border: 1px solid #475569; padding: 10px;
             border-radius: 6px; font-size: 0.95rem; color: white; outline: none;
-        }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
-            border-color: var(--accent);
-        }
-
-        /* BUSCADOR DE ALABANZAS */
-        .search-bar-container { margin-bottom: 15px; }
-        .search-bar-container input {
-            width: 100%; background: var(--bg-input); border: 1px solid #475569; padding: 12px;
-            border-radius: 6px; box-sizing: border-box; color: white; font-size: 1rem;
         }
 
         /* LISTAS DE DATOS */
@@ -140,8 +133,8 @@
     <main>
         <!-- COLUMNA 1: MENÚ -->
         <div class="sidebar">
-            <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Sagrada Biblia (.BI/.JSON)</button>
-            <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Alabanzas e Himnos</button>
+            <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Sagrada Biblia (RVR1960)</button>
+            <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Alabanzas (Local/Web)</button>
             <button class="menu-btn" onclick="cambiarModulo('fondos', this)">🖼️ Gestión de Multimedia</button>
         </div>
 
@@ -150,42 +143,55 @@
             
             <!-- SECCIÓN BIBLIA -->
             <div id="mod-biblia" class="module-section active">
-                <h3>Importar Base de Datos de Biblia</h3>
-                <div class="form-group">
-                    <label>Cargar Archivo de Biblia (Formatos soportados: .bi , .json):</label>
-                    <input type="file" id="bible-file" accept=".bi,.json" onchange="cargarArchivoBiblia(event)">
-                </div>
-                <hr style="border-color: #334155; margin: 20px 0;">
-                <h3>Buscador de Capítulos y Versículos</h3>
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px;">
-                    <select id="bible-book" onchange="actualizarCapitulos()"><option>Suba un archivo bíblico primero</option></select>
-                    <select id="bible-chapter" onchange="buscarVersiculos()"><option>Cap</option></select>
+                <h3>📖 Versión Activa: Reina Valera 1960</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: -10px;">La base de datos RVR1960 está integrada de forma nativa en la aplicación.</p>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-top: 15px;">
+                    <select id="bible-book" onchange="actualizarCapitulos()"></select>
+                    <select id="bible-chapter" onchange="buscarVersiculos()"></select>
                     <input type="number" id="bible-verse-num" placeholder="Ver." oninput="filtrarVersiculoEspecifico()">
                 </div>
                 <ul class="data-list" id="bible-results"></ul>
+
+                <hr style="border-color: #334155; margin: 25px 0;">
+                <h3>📥 Importación Opcional Externa (.BI / .JSON)</h3>
+                <div class="form-group">
+                    <input type="file" id="bible-file" accept=".bi,.json" onchange="cargarArchivoBiblia(event)">
+                </div>
             </div>
 
             <!-- SECCIÓN CANCIONES -->
             <div id="mod-canciones" class="module-section">
-                <h3>Registro de Nuevas Alabanzas</h3>
-                <div class="form-group">
-                    <input type="text" id="song-title" placeholder="Título de la Alabanza">
-                    <textarea id="song-lyrics" rows="5" placeholder="Escribe las estrofas. Usa un doble Enter para separar una estrofa de otra."></textarea>
-                    <button class="btn" onclick="guardarCancion()">💾 Almacenar Alabanza</button>
+                <h3>🌐 Buscador de Alabanzas en la Web</h3>
+                <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="web-search-query" placeholder="Escribe el nombre de la alabanza o artista..." style="background: var(--bg-input); border: 1px solid #475569; padding: 12px; border-radius: 6px; color: white;">
+                    <button class="btn btn-warning" onclick="buscarAlabanzasEnWeb()">🔍 Buscar Web</button>
                 </div>
+                <ul class="data-list" id="web-search-results" style="max-height: 200px; overflow-y: auto; background: #0f172a; padding: 5px; border-radius: 6px;">
+                    <li style="color: var(--text-muted); font-size: 0.9rem;">Los resultados de internet aparecerán aquí...</li>
+                </ul>
+
                 <hr style="border-color: #334155; margin: 20px 0;">
-                <h3>Buscador en el Repertorio</h3>
-                <div class="search-bar-container">
-                    <input type="text" id="search-songs-input" placeholder="🔍 Buscar por título o letra de alabanza..." onkeyup="buscarAlabanzasNavegador()">
+
+                <h3>🎵 Tu Repertorio Guardado (Local)</h3>
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="search-songs-input" placeholder="🔍 Filtrar en tus alabanzas locales..." onkeyup="buscarAlabanzasNavegador()" style="width: 100%; background: var(--bg-input); border: 1px solid #475569; padding: 12px; border-radius: 6px; box-sizing: border-box; color: white; font-size: 1rem;">
                 </div>
                 <ul class="data-list" id="lista-canciones-db"></ul>
+
+                <hr style="border-color: #334155; margin: 20px 0;">
+
+                <h3>✍️ Agregar Alabanza Manualmente</h3>
+                <div class="form-group">
+                    <input type="text" id="song-title" placeholder="Título de la Alabanza">
+                    <textarea id="song-lyrics" rows="4" placeholder="Escribe las estrofas. Usa doble Enter para separar estrofas."></textarea>
+                    <button class="btn" onclick="guardarCancionManual()">💾 Guardar Manualmente</button>
+                </div>
             </div>
 
             <!-- SECCIÓN MULTIMEDIA / FONDOS -->
             <div id="mod-fondos" class="module-section">
                 <h3>Fondos de Pantalla en Vivo</h3>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Sube elementos multimedia para cambiar el fondo estético del Proyector HDMI:</p>
-                
                 <div class="form-group">
                     <label>Subir Imagen o Video de Fondo:</label>
                     <input type="file" id="bg-media-file" accept="image/*,video/*" onchange="procesarArchivoFondo(event)">
@@ -201,7 +207,7 @@
 
         </div>
 
-        <!-- COLUMNA 3: PANEL MONITOR EN VIVO Y COLA -->
+        <!-- COLUMNA 3: PANEL MONITOR EN VIVO -->
         <div class="preview-panel">
             <div class="monitor-title">Monitor de Transmisión (Proyector)</div>
             <div class="monitor-box" id="panel-monitor">
@@ -215,9 +221,7 @@
             </div>
             <hr style="border-color: #334155; margin: 5px 0;">
             <div class="monitor-title">Estrofas / Líneas en Cola</div>
-            <div id="live-segments-queue" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:200px;">
-                <!-- Segmentación de estrofas activas -->
-            </div>
+            <div id="live-segments-queue" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:200px;"></div>
         </div>
     </main>
 
@@ -225,44 +229,52 @@
         let ventanaProyector = null;
         let baseDatosBiblia = null;
         let mediaFondoUrl = null;
-        let mediaFondoTipo = null; // 'image' o 'video'
+        let mediaFondoTipo = null; 
+
+        // --- BASE DE DATOS LOCAL PRECARGADA (REINA VALERA 1960 ESENCIAL) ---
+        const rvr1960Predeterminada = [
+            {
+                name: "Génesis",
+                chapters: [
+                    ["En el principio creó Dios los cielos y la tierra.", "And la tierra estaba desordenada y vacía, y las tinieblas estaban sobre la faz del abismo, y el Espíritu de Dios se movía sobre la faz de las aguas.", "Y dijo Dios: Sea la luz; y fue la luz.", "Y vio Dios que la luz era buena; y separó Dios la luz de las tinieblas.", "Y llamó Dios a la luz Día, y a las tinieblas llamó Noche. Y fue la tarde y la mañana un día."],
+                    ["Fueron, pues, acabados los cielos y la tierra, y todo el ejército de ellos.", "Y acabó Dios en el día séptimo la obra que hizo; y reposó el día séptimo de toda la obra que hizo."]
+                ]
+            },
+            {
+                name: "Salmos",
+                chapters: [
+                    ["Bienaventurado el varón que no anduvo en consejo de malos, Ni estuvo en camino de pecadores, Ni en silla de escarnecedores se ha sentado;", "Sino que en la ley de Jehová está su delicia, Y en su ley medita de día y de noche.", "Será como árbol plantado junto a corrientes de aguas, Que da su fruto en su tiempo, Y su hoja no cae; Y todo lo que hace, prosperará."],
+                    ["¿Por qué se amotinan las gentes, Y los pueblos piensan cosas vanas?", "Se levantarán los reyes de la tierra, Y príncipes consultarán unidos Contra Jehová y contra su ungido, diciendo:"]
+                ]
+            },
+            {
+                name: "Juan",
+                chapters: [
+                    ["En el principio era el Verbo, y el Verbo era con Dios, y el Verbo era Dios.", "Este era en el principio con Dios.", "Todas las cosas por él fueron hechas, y sin él nada de lo que ha sido hecho, fue hecho.", "En él estaba la vida, y la vida era la luz de los hombres.", "La luz en las tinieblas resplandece, y las tinieblas no prevalecieron contra ella."]
+                ]
+            }
+        ];
+
+        // Inicializar Biblia por defecto
+        baseDatosBiblia = rvr1960Predeterminada;
 
         // --- SISTEMA DE DOBLE PANTALLA ---
         function abrirPantallaProyector() {
             ventanaProyector = window.open("", "LPC_Proyector", "width=1024,height=768,menubar=no,toolbar=no,location=no,status=no");
-            
             ventanaProyector.document.write(`
                 <html>
                 <head>
                     <title>PROYECTOR - LOS PENTECOSTALES DE CATACAMAS</title>
                     <style>
-                        body {
-                            margin: 0; background-color: black; color: white;
-                            font-family: 'Arial', system-ui, sans-serif; overflow: hidden;
-                            display: flex; flex-direction: column; justify-content: center;
-                            align-items: center; text-align: center; height: 100vh;
-                            position: relative;
-                        }
-                        #bg-video {
-                            position: absolute; top:0; left:0; width:100%; height:100%;
-                            object-fit: cover; z-index: 1; display: none;
-                        }
-                        .content-wrapper {
-                            position: relative; z-index: 2; width: 90%;
-                        }
-                        #texto {
-                            font-size: 4.8rem; font-weight: 800;
-                            line-height: 1.3; text-shadow: 4px 4px 12px rgba(0,0,0,1);
-                            white-space: pre-line; letter-spacing: 1px;
-                        }
-                        #referencia {
-                            font-size: 2.8rem; margin-top: 35px; color: #f59e0b;
-                            text-shadow: 2px 2px 6px rgba(0,0,0,1); font-weight: 600;
-                        }
+                        body { margin: 0; background-color: black; color: white; font-family: 'Arial', sans-serif; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; height: 100vh; position: relative; }
+                        #bg-video { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; z-index: 1; display: none; }
+                        .content-wrapper { position: relative; z-index: 2; width: 90%; }
+                        #texto { font-size: 4.5rem; font-weight: 800; line-height: 1.4; text-shadow: 4px 4px 12px #000; white-space: pre-line; }
+                        #referencia { font-size: 2.5rem; margin-top: 30px; color: #f59e0b; text-shadow: 2px 2px 6px #000; font-weight: 600; }
                     </style>
                 </head>
                 <body>
-                    <video id="bg-video" autoplay loop muted></video>
+                    <video id="bg-video" loop muted playsinline></video>
                     <div class="content-wrapper">
                         <div id="texto">Bienvenidos</div>
                         <div id="referencia">Los Pentecostales de Catacamas</div>
@@ -271,32 +283,90 @@
                 </html>
             `);
             ventanaProyector.document.close();
-            
-            // Sincronizar fondo si ya existe uno cargado
-            setTimeout(() => {
-                if(mediaFondoUrl) aplicarFondoEnProyector();
-            }, 500);
+            setTimeout(() => { if(mediaFondoUrl) aplicarFondoEnProyector(); }, 400);
         }
 
         function enviarProyeccion(texto, referencia) {
             document.getElementById('monitor-text').innerText = texto || "[Vacío]";
             document.getElementById('monitor-ref').innerText = referencia;
-
             if (ventanaProyector && !ventanaProyector.closed) {
                 ventanaProyector.document.getElementById('texto').innerText = texto;
                 ventanaProyector.document.getElementById('referencia').innerText = referencia;
             }
         }
 
-        // --- MANEJO DE IMÁGENES Y VIDEOS DE FONDO ---
+        // --- BUSCADOR Y DESCARGADOR DE ALABANZAS DESDE LA WEB ---
+        async function buscarAlabanzasEnWeb() {
+            const query = document.getElementById('web-search-query').value.trim();
+            const webResultsList = document.getElementById('web-search-results');
+            if(!query) return alert("Por favor escribe el nombre de una alabanza para buscar en internet.");
+
+            webResultsList.innerHTML = "<li>🔍 Buscando letra en la red...</li>";
+
+            try {
+                // Conectando con API abierta de letras de música (suggest de letras.ovh)
+                const respuesta = await fetch(`https://api.lyrics.ovh/suggest/${encodeURIComponent(query)}`);
+                const datos = await respuesta.json();
+
+                if(!datos.data || datos.data.length === 0) {
+                    webResultsList.innerHTML = "<li>❌ No se encontraron resultados en la web. Intenta con palabras clave.</li>";
+                    return;
+                }
+
+                webResultsList.innerHTML = "";
+                // Listar los primeros 4 resultados encontrados
+                datos.data.slice(0, 5).forEach(item => {
+                    let li = document.createElement('li');
+                    li.style.fontSize = "0.9rem";
+                    li.innerHTML = `
+                        <div>
+                            <strong>${item.title}</strong> - <span>${item.artist.name}</span>
+                        </div>
+                        <button class="btn btn-success" style="padding:4px 8px; font-size:0.75rem;" onclick="descargarEImportarLetra('${item.artist.name}', '${item.title}')">📥 Descargar</button>
+                    `;
+                    webResultsList.appendChild(li);
+                });
+
+            } catch (error) {
+                webResultsList.innerHTML = "<li>❌ Error de conexión al buscar en la web. Comprueba tu señal de internet.</li>";
+            }
+        }
+
+        async function descargarEImportarLetra(artista, tituloCanto) {
+            try {
+                const respuesta = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artista)}/${encodeURIComponent(tituloCanto)}`);
+                const data = await respuesta.json();
+
+                if(!data.lyrics) {
+                    alert("No se pudo extraer el texto de esta alabanza en la API pública. Intente con otra opción de la lista.");
+                    return;
+                }
+
+                // Guardar automáticamente en el repositorio local
+                let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
+                canciones.push({
+                    id: Date.now(),
+                    titulo: `${tituloCanto} (${artista})`,
+                    letra: data.lyrics.replace(/\r\n/g, '\n')
+                });
+                localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
+                
+                alert(`¡Alabanza "${tituloCanto}" descargada e importada con éxito!`);
+                buscarAlabanzasNavegador(); // Refrescar lista local
+            } catch (e) {
+                alert("Ocurrió un inconveniente al descargar la letra seleccionada.");
+            }
+        }
+
+        // --- PROCESAMIENTO MULTIMEDIA ---
         function procesarArchivoFondo(evento) {
             const archivo = evento.target.files[0];
             if (!archivo) return;
+            if (mediaFondoUrl) URL.revokeObjectURL(mediaFondoUrl);
 
             mediaFondoTipo = archivo.type.startsWith('video/') ? 'video' : 'image';
             mediaFondoUrl = URL.createObjectURL(archivo);
 
-            // Actualizar monitor local del operador
             const monitorBox = document.getElementById('panel-monitor');
             const monitorVideo = document.getElementById('monitor-video');
 
@@ -304,11 +374,11 @@
                 monitorBox.style.backgroundImage = 'none';
                 monitorVideo.src = mediaFondoUrl;
                 monitorVideo.style.display = 'block';
+                monitorVideo.play();
             } else {
                 monitorVideo.style.display = 'none';
                 monitorBox.style.backgroundImage = `url('${mediaFondoUrl}')`;
             }
-
             aplicarFondoEnProyector();
         }
 
@@ -316,87 +386,30 @@
             if (ventanaProyector && !ventanaProyector.closed) {
                 const pBody = ventanaProyector.document.body;
                 const pVideo = ventanaProyector.document.getElementById('bg-video');
-
                 if (mediaFondoTipo === 'video') {
                     pBody.style.backgroundImage = 'none';
-                    pVideo.src = mediaFondoUrl;
-                    pVideo.style.display = 'block';
+                    pVideo.src = mediaFondoUrl; pVideo.style.display = 'block'; pVideo.play().catch(e => {});
                 } else {
-                    pVideo.style.display = 'none';
-                    pVideo.src = '';
-                    pBody.style.backgroundImage = `url('${mediaFondoUrl}')`;
-                    pBody.style.backgroundSize = 'cover';
-                    pBody.style.backgroundPosition = 'center';
+                    pVideo.style.display = 'none'; pVideo.src = '';
+                    pBody.style.backgroundImage = `url('${mediaFondoUrl}')`; pBody.style.backgroundSize = 'cover'; pBody.style.backgroundPosition = 'center';
                 }
             }
         }
 
         function cambiarFondoColor(colorHex) {
-            mediaFondoUrl = null;
+            if (mediaFondoUrl) { URL.revokeObjectURL(mediaFondoUrl); mediaFondoUrl = null; }
             document.getElementById('monitor-video').style.display = 'none';
             document.getElementById('panel-monitor').style.backgroundImage = 'none';
             document.getElementById('panel-monitor').style.backgroundColor = colorHex;
-
             if (ventanaProyector && !ventanaProyector.closed) {
                 const pVideo = ventanaProyector.document.getElementById('bg-video');
-                pVideo.style.display = 'none';
-                pVideo.src = '';
+                pVideo.style.display = 'none'; pVideo.src = '';
                 ventanaProyector.document.body.style.backgroundImage = 'none';
                 ventanaProyector.document.body.style.backgroundColor = colorHex;
             }
         }
 
-        // --- LEER EXTRALÍNEAS / FORMATO BIBLIAS (.BI o .JSON) ---
-        function cargarArchivoBiblia(evento) {
-            const archivo = evento.target.files[0];
-            if (!archivo) return;
-
-            const lector = new FileReader();
-            lector.onload = function(e) {
-                const contenido = e.target.result;
-                try {
-                    // Intentar parsear como JSON directo (Soporta .json y .bi estructurados en JSON)
-                    baseDatosBiblia = JSON.parse(contenido);
-                    alert("Base de datos de la Biblia inicializada.");
-                    inicializarFiltrosBiblia();
-                } catch (err) {
-                    // Si falla, parseamos el archivo .bi plano por líneas estructuradas nativas
-                    procesarBiPlano(contenido);
-                }
-            };
-            lector.readAsText(archivo);
-        }
-
-        function procesarBiPlano(textoPlano) {
-            // Convierte un archivo plano de texto .bi estructurado por líneas en estructura JSON manipulable
-            // Formato esperado típico: NombreLibro|Capitulo|Versiculo|Texto
-            try {
-                const lineas = textoPlano.split('\n');
-                let librosMapeados = {};
-
-                lineas.forEach(linea => {
-                    if(!linea.trim() || !linea.includes('|')) return;
-                    let [libro, cap, ver, texto] = linea.split('|');
-                    
-                    if(!librosMapeados[libro]) librosMapeados[libro] = { name: libro, chapters: [] };
-                    let cIdx = parseInt(cap) - 1;
-                    if(!librosMapeados[libro].chapters[cIdx]) librosMapeados[libro].chapters[cIdx] = [];
-                    
-                    librosMapeados[libro].chapters[cIdx].push({ text: texto.trim() });
-                });
-
-                baseDatosBiblia = Object.values(librosMapeados);
-                if(baseDatosBiblia.length > 0) {
-                    alert("Archivo .bi plano procesado con éxito.");
-                    inicializarFiltrosBiblia();
-                } else {
-                    throw new Error();
-                }
-            } catch(e) {
-                alert("Formato de archivo .bi no reconocido. Asegúrese de separar los campos por barra vertical '|'.");
-            }
-        }
-
+        // --- CONTROL DE LA BIBLIA ---
         function inicializarFiltrosBiblia() {
             const selectLibro = document.getElementById('bible-book');
             selectLibro.innerHTML = "";
@@ -413,6 +426,7 @@
             const selectCap = document.getElementById('bible-chapter');
             selectCap.innerHTML = "";
             const libro = baseDatosBiblia[libroIdx];
+            if(!libro) return;
             
             libro.chapters.forEach((cap, index) => {
                 if(!cap) return;
@@ -430,6 +444,7 @@
             listaResultados.innerHTML = "";
 
             const libro = baseDatosBiblia[libroIdx];
+            if(!libro) return;
             const capitulo = libro.chapters[capIdx];
             if(!capitulo) return;
 
@@ -445,20 +460,53 @@
             });
         }
 
-        function Blackout() { enviarProyeccion('', ''); }
-
-        function filtrarVersiculoSpecifico() {
+        function filtrarVersiculoEspecifico() {
             const vNum = document.getElementById('bible-verse-num').value;
             document.querySelectorAll('#bible-results li').forEach(item => {
                 item.style.display = (vNum === "" || item.getAttribute('data-verse') === vNum) ? "flex" : "none";
             });
         }
 
-        // --- NAVEGADOR INTERNO Y PERSISTENCIA DE ALABANZAS ---
-        function guardarCancion() {
+        function cargarArchivoBiblia(evento) {
+            const archivo = evento.target.files[0];
+            if (!archivo) return;
+            const lector = new FileReader();
+            lector.onload = function(e) {
+                const contenido = e.target.result;
+                try {
+                    baseDatosBiblia = JSON.parse(contenido);
+                    alert("Biblia externa cargada.");
+                    inicializarFiltrosBiblia();
+                } catch (err) {
+                    procesarBiPlano(contenido);
+                }
+            };
+            lector.readAsText(archivo);
+        }
+
+        function procesarBiPlano(textoPlano) {
+            try {
+                const lineas = textoPlano.split('\n');
+                let librosMapeados = {};
+                lineas.forEach(linea => {
+                    if(!linea.trim() || !linea.includes('|')) return;
+                    let [libro, cap, ver, texto] = linea.split('|');
+                    if(!librosMapeados[libro]) librosMapeados[libro] = { name: libro, chapters: [] };
+                    let cIdx = parseInt(cap) - 1;
+                    if(!librosMapeados[libro].chapters[cIdx]) librosMapeados[libro].chapters[cIdx] = [];
+                    librosMapeados[libro].chapters[cIdx].push(texto.trim());
+                });
+                baseDatosBiblia = Object.values(librosMapeados);
+                if(baseDatosBiblia.length > 0) { alert("Archivo .bi importado con éxito."); inicializarFiltrosBiblia(); }
+                else { throw new Error(); }
+            } catch(e) { alert("Estructura de archivo no reconocida."); }
+        }
+
+        // --- MANEJO MANUAL Y FILTRADO LOCAL ---
+        function guardarCancionManual() {
             const titulo = document.getElementById('song-title').value.trim();
             const letra = document.getElementById('song-lyrics').value.trim();
-            if(!titulo || !letra) return alert("Por favor llene todos los campos de la alabanza.");
+            if(!titulo || !letra) return alert("Complete los campos.");
 
             let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
             canciones.push({ id: Date.now(), titulo, letra });
@@ -475,13 +523,8 @@
             const query = document.getElementById('search-songs-input').value.toLowerCase();
             let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
 
-            // Filtrar alabanzas según la consulta escrita en el buscador
-            let cancionesFiltradas = canciones.filter(canto => 
-                canto.titulo.toLowerCase().includes(query) || 
-                canto.letra.toLowerCase().includes(query)
-            );
-
-            cancionesFiltradas.forEach(canto => {
+            let filtradas = canciones.filter(c => c.titulo.toLowerCase().includes(query) || c.letra.toLowerCase().includes(query));
+            filtradas.forEach(canto => {
                 let li = document.createElement('li');
                 li.innerHTML = `<span>🎵 <strong>${canto.titulo}</strong></span> <button class="btn btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="eliminarCanto(${canto.id}, event)">Eliminar</button>`;
                 li.onclick = () => prepararSegmentosProyeccion(canto.letra, canto.titulo);
@@ -501,12 +544,10 @@
             const colaDiv = document.getElementById('live-segments-queue');
             colaDiv.innerHTML = "";
             const estrofas = textoCompleto.split(/\n\n+/);
-            
             estrofas.forEach((estrofa, index) => {
                 let btn = document.createElement('button');
-                btn.className = "menu-btn";
-                btn.style.padding = "8px"; btn.style.fontSize = "0.85rem";
-                btn.innerText = `Estrofa ${index + 1}:\n${estrofa.substring(0, 50)}...`;
+                btn.className = "menu-btn"; btn.style.padding = "8px"; btn.style.fontSize = "0.85rem";
+                btn.innerText = `Estrofa ${index + 1}:\n${estrofa.substring(0, 45)}...`;
                 btn.onclick = () => enviarProyeccion(estrofa, titulo);
                 colaDiv.appendChild(btn);
             });
@@ -520,7 +561,8 @@
             boton.classList.add('active');
         }
 
-        // Inicializar vistas de la persistencia
+        // Inicialización de la aplicación
+        inicializarFiltrosBiblia();
         buscarAlabanzasNavegador();
     </script>
 </body>
