@@ -60,6 +60,7 @@
         .sidebar {
             background: var(--bg-card); padding: 15px; border-radius: 8px;
             display: flex; flex-direction: column; gap: 10px; border: 1px solid #334155;
+            overflow-y: auto;
         }
         .menu-btn {
             background: var(--bg-input); border: 1px solid #475569; padding: 12px;
@@ -102,7 +103,7 @@
         .monitor-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;}
         
         .monitor-box {
-            background: black; border: 2px solid #334155; height: 105px;
+            background: black; border: 2px solid #334155; height: 115px;
             border-radius: 6px; display: flex; flex-direction: column;
             justify-content: center; align-items: center; text-align: center; padding: 8px;
             position: relative; overflow: hidden; background-size: cover; background-position: center;
@@ -111,10 +112,16 @@
             position: absolute; width: 100%; height: 100%; top: 0; left: 0; object-fit: cover; z-index: 1; opacity: 0.4;
         }
         #monitor-title-text { font-size: 0.75rem; color: var(--warning); font-weight: bold; position: relative; z-index: 2; margin-bottom: 2px;}
-        #monitor-text { font-size: 0.9rem; font-weight: bold; position: relative; z-index: 2; text-shadow: 2px 2px 4px #000; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+        #monitor-text { font-size: 0.9rem; font-weight: bold; position: relative; z-index: 2; text-shadow: 2px 2px 4px #000; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;}
         
         .queue-container {
             flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 2px;
+        }
+
+        .timer-display {
+            font-size: 1.8rem; font-weight: 800; color: var(--danger); text-align: center;
+            background: #020617; padding: 10px; border-radius: 6px; border: 1px solid #334155;
+            font-family: monospace;
         }
     </style>
 </head>
@@ -134,11 +141,12 @@
             <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Sagrada Biblia</button>
             <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Alabanzas (Manual)</button>
             <button class="menu-btn" onclick="cambiarModulo('texto', this)">📝 Texto / Anuncios / Notas</button>
+            <button class="menu-btn" onclick="cambiarModulo('cronometro', this)">⏱️ Cronómetro / Apertura</button>
             <button class="menu-btn" onclick="cambiarModulo('fondos', this)">🖼️ Multimedia y Fondos</button>
             
             <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid #334155;">
                 <div class="form-group">
-                    <label>⚙️ Tipo de Letra Global:</label>
+                    <label>⚙️ Tipo de Letra Proyector:</label>
                     <select id="global-font-family" onchange="cambiarTipografiaGlobal(this.value)">
                         <option value="Arial, sans-serif">Arial (Estándar)</option>
                         <option value="'Segoe UI', sans-serif">Segoe UI (Moderna)</option>
@@ -148,10 +156,10 @@
                     </select>
                 </div>
                 <div class="form-group" style="margin-top: 10px;">
-                    <label>📏 Límite de Tamaño Máximo:</label>
+                    <label>📏 Tamaño Máximo Inicial:</label>
                     <select id="global-max-font" onchange="actualizarMaxFontProyector(this.value)">
                         <option value="4.5rem">Normal (Recomendado)</option>
-                        <option value="3.5rem">Pequeño (Versos Extrallargos)</option>
+                        <option value="3.5rem">Compacto (Para versos largos)</option>
                         <option value="5.5rem">Grande</option>
                         <option value="7rem">Gigante</option>
                     </select>
@@ -162,25 +170,25 @@
         <!-- COLUMNA 2: PANELES INTERACTIVOS -->
         <div class="content-panel">
             
-            <!-- SECCIÓN BIBLIA (AHORA CON AUTOSAVE) -->
+            <!-- SECCIÓN BIBLIA (CORREGIDA - SIN ERROR DE CUOTA) -->
             <div id="mod-biblia" class="module-section active">
                 <h3>📖 Sagrada Biblia</h3>
                 
                 <div class="form-group" style="background: #0f172a; padding: 12px; border-radius: 6px; border: 1px solid var(--accent);">
-                    <label style="color: var(--accent); font-weight: bold;">📂 CARGAR O REEMPLAZAR BIBLIA .JSON:</label>
+                    <label style="color: var(--accent); font-weight: bold;">📂 CARGAR ARCHIVO BIBLIA .JSON:</label>
                     <input type="file" id="json-bible-file" accept=".json" onchange="cargarBibliaJSON(event)">
-                    <div id="status-storage-bible" style="color: var(--success); font-size: 0.8rem; margin-top: 5px; font-weight: bold;">Verificando memoria local...</div>
+                    <div id="status-storage-bible" style="color: var(--warning); font-size: 0.8rem; margin-top: 5px; font-weight: bold;">Selecciona tu archivo JSON de la biblia para iniciar.</div>
                 </div>
 
                 <div id="controles-biblia-json" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px;">
-                    <select id="bible-book" onchange="actualizarCapitulos()"><option>Carga un archivo</option></select>
+                    <select id="bible-book" onchange="actualizarCapitulos()"><option>Primero carga el archivo .json</option></select>
                     <select id="bible-chapter" onchange="buscarVersiculos()"><option>-</option></select>
                     <input type="number" id="bible-verse-num" placeholder="Ver." oninput="filtrarVersiculoEspecifico()">
                 </div>
 
                 <h4 style="margin: 10px 0 5px 0; color: var(--accent);">Versículos:</h4>
                 <ul class="data-list" id="bible-results" style="flex-grow: 1; overflow-y: auto; max-height: 340px;">
-                    <li style="color: var(--text-muted);">Sube un archivo JSON una sola vez; se guardará de forma permanente en esta computadora.</li>
+                    <li style="color: var(--text-muted);">Al subir el archivo se cargará directo en memoria RAM de forma inmediata evitando errores del sistema.</li>
                 </ul>
             </div>
 
@@ -190,7 +198,7 @@
                 <div class="form-group">
                     <input type="text" id="song-title" placeholder="Título oficial de la alabanza">
                     <textarea id="song-lyrics" rows="3" placeholder="Escribe o pega las estrofas aquí. Usa DOBLE ENTER para separar estrofas."></textarea>
-                    <button class="btn btn-success" onclick="guardarCancionManual()" style="width: 100%;">💾 Guardar en Memoria Local</button>
+                    <button class="btn btn-success" onclick="guardarCancionManual()" style="width: 100%;">💾 Guardar en Memoria de Alabanzas</button>
                 </div>
                 <hr style="border-color: #334155; margin: 10px 0;">
                 <h3>🎵 Repertorio Guardado</h3>
@@ -200,12 +208,12 @@
                 <ul class="data-list" id="lista-canciones-db" style="max-height: 200px; overflow-y: auto;"></ul>
             </div>
 
-            <!-- SECCIÓN: TEXTO / ANUNCIOS / NOTAS (REDISEÑADO) -->
+            <!-- SECCIÓN: TEXTO / ANUNCIOS / NOTAS -->
             <div id="mod-texto" class="module-section">
                 <h3>📝 Panel de Anuncios y Notas Libres</h3>
                 <div class="form-group">
-                    <label>Título Superior (Opcional - Va arriba del texto):</label>
-                    <input type="text" id="notice-title" placeholder="Ej: AVISO, CULTO DE ORACIÓN (Dejar vacío si no lleva)">
+                    <label>Título Superior (Opcional):</label>
+                    <input type="text" id="notice-title" placeholder="Ej: AVISO IMPORTANTÍSIMO (Vacío si no lleva)">
                 </div>
                 <div class="form-group">
                     <label>Contenido Principal del Mensaje:</label>
@@ -213,7 +221,27 @@
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px;">
                     <button class="btn btn-warning" onclick="proyectarTextoLibre()">📢 Proyectar Texto</button>
-                    <button class="btn btn-danger" onclick="limpiarCamposTexto()" style="background:#475569;">扫 Limpiar</button>
+                    <button class="btn btn-danger" onclick="limpiarCamposTexto()" style="background:#475569;">Limpiar</button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN NUEVA: CRONÓMETRO -->
+            <div id="mod-cronometro" class="module-section">
+                <h3>⏱️ Cronómetro y Cuenta Regresiva de Servicio</h3>
+                <div class="form-group">
+                    <label>Texto de Advertencia / Encabezado:</label>
+                    <input type="text" id="timer-message" value="EL SERVICIO COMENZARÁ EN:" placeholder="Ej: EL SERVICIO INICIA EN, TIEMPO DE ORACIÓN...">
+                </div>
+                <div class="form-group">
+                    <label>Tiempo Inicial (Minutos):</label>
+                    <input type="number" id="timer-minutes" value="5" min="1" max="180">
+                </div>
+                
+                <div class="timer-display" id="local-timer-view">05:00</div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <button class="btn btn-success" onclick="iniciarCuentaRegresiva()">▶️ Lanzar y Proyectar</button>
+                    <button class="btn btn-danger" onclick="detenerCuentaRegresiva()">⏱️ Detener</button>
                 </div>
             </div>
 
@@ -257,29 +285,16 @@
         let backgroundType = null; 
         let currentFontFamily = "Arial, sans-serif";
         let currentMaxFontSize = "4.5rem";
+        
+        // Variables para el control del cronómetro
+        let countdownInterval = null;
+        let totalSecondsLeft = 0;
 
-        // Al iniciar la aplicación, comprueba si hay Biblias en LocalStorage
         window.addEventListener('DOMContentLoaded', () => {
-            const bibliaGuardada = localStorage.getItem('lpc_biblia_persistente');
-            const statusDiv = document.getElementById('status-storage-bible');
-            if(bibliaGuardada) {
-                try {
-                    biblesDataJSON = JSON.parse(bibliaGuardada);
-                    inicializarFiltrosBiblia();
-                    statusDiv.innerText = "✅ Biblia cargada automáticamente desde memoria local.";
-                    statusDiv.style.color = "var(--success)";
-                } catch(e) {
-                    statusDiv.innerText = "❌ Hubo un error leyendo la memoria local.";
-                    statusDiv.style.color = "var(--danger)";
-                }
-            } else {
-                statusDiv.innerText = "⚠️ Sin Biblia activa. Sube un archivo .json abajo.";
-                statusDiv.style.color = "var(--warning)";
-            }
             buscarAlabanzasNavegador();
         });
 
-        // --- MANEJO DE BIBLIA CON PERSISTENCIA ---
+        // --- MANEJO DE BIBLIA (OPTIMIZADO DIRECTO A RAM) ---
         function cargarBibliaJSON(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -295,15 +310,13 @@
                     }
 
                     biblesDataJSON = limpio;
-                    // Guardar en localStorage de forma permanente
-                    localStorage.setItem('lpc_biblia_persistente', JSON.stringify(limpio));
-                    
                     inicializarFiltrosBiblia();
+                    
                     const statusDiv = document.getElementById('status-storage-bible');
-                    statusDiv.innerText = "✅ Biblia guardada con éxito de forma interna.";
+                    statusDiv.innerText = "✅ Biblia cargada con éxito en la memoria del sistema.";
                     statusDiv.style.color = "var(--success)";
                 } catch (err) {
-                    alert("Error leyendo el archivo JSON.");
+                    alert("Error leyendo el archivo JSON de la biblia. Verifica el formato.");
                     console.error(err);
                 }
             };
@@ -403,6 +416,7 @@
                 li.innerHTML = `<strong>${numVersiculo}.</strong> ${textVersiculo}`;
                 
                 li.onclick = () => {
+                    detenerCuentaRegresiva(); // frena cronómetros si se va a proyectar biblia
                     const cita = `${libroNombre} ${numCap}:${numVersiculo}`;
                     const colaDiv = document.getElementById('live-segments-queue');
                     colaDiv.innerHTML = "";
@@ -428,7 +442,7 @@
             });
         }
 
-        // --- CONFIGURACIÓN ESTILOS CONFIGURABLES ---
+        // --- SISTEMA DE TIPOGRAFÍA DINÁMICA ---
         function cambiarTipografiaGlobal(fontName) {
             currentFontFamily = fontName;
             if (windowProyector && !windowProyector.closed) {
@@ -440,13 +454,13 @@
         function actualizarMaxFontProyector(maxSize) {
             currentMaxFontSize = maxSize;
             if (windowProyector && !windowProyector.closed) {
-                windowProyector.document.getElementById('texto').style.maxHeight = "85vh"; 
                 windowProyector.recalculaTextoAcoplado();
             }
         }
 
         // --- CONTROL ANUNCIOS Y MENSAJES LIBRES ---
         function proyectarTextoLibre() {
+            detenerCuentaRegresiva();
             const titulo = document.getElementById('notice-title').value.trim();
             const contenido = document.getElementById('notice-content').value.trim();
             if (!contenido) return alert("Escribe el cuerpo del mensaje.");
@@ -466,6 +480,47 @@
         function limpiarCamposTexto() {
             document.getElementById('notice-title').value = "";
             document.getElementById('notice-content').value = "";
+        }
+
+        // --- SISTEMA DE CRONÓMETRO INTERACTIVO ---
+        function iniciarCuentaRegresiva() {
+            detenerCuentaRegresiva();
+            const msg = document.getElementById('timer-message').value.trim();
+            const mins = parseInt(document.getElementById('timer-minutes').value) || 5;
+            
+            totalSecondsLeft = mins * 60;
+            actualizarInterfazCronometro(msg);
+
+            countdownInterval = setInterval(() => {
+                totalSecondsLeft--;
+                if (totalSecondsLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    totalSecondsLeft = 0;
+                    enviarProyeccion("00:00", msg);
+                    document.getElementById('local-timer-view').innerText = "00:00";
+                } else {
+                    actualizarInterfazCronometro(msg);
+                }
+            }, 1000);
+        }
+
+        function deFaltandoATexto(segundos) {
+            let m = Math.floor(segundos / 60);
+            let s = segundos % 60;
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function actualizarInterfazCronometro(mensajeSuperior) {
+            let tiempoTexto = deFaltandoATexto(totalSecondsLeft);
+            document.getElementById('local-timer-view').innerText = tiempoTexto;
+            enviarProyeccion(tiempoTexto, mensajeSuperior);
+        }
+
+        function detenerCuentaRegresiva() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
         }
 
         // --- ALABANZAS MANUALES ---
@@ -500,7 +555,7 @@
 
         function eliminarCanto(id, e) {
             e.stopPropagation();
-            if(!confirm("¿Eliminar alabanza?")) return;
+            if(!confirm("¿Eliminar alabanza del listado?")) return;
             let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
             canciones = canciones.filter(c => c.id !== id);
             localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
@@ -508,6 +563,7 @@
         }
 
         function prepararSegmentosProyeccion(textoCompleto, titulo) {
+            detenerCuentaRegresiva();
             const colaDiv = document.getElementById('live-segments-queue');
             colaDiv.innerHTML = "";
             const estrofas = textoCompleto.split(/\n\n+/);
@@ -521,7 +577,7 @@
             enviarProyeccion(estrofas[0], titulo);
         }
 
-        // --- SISTEMA MULTIPANTALLA DE PROYECCIÓN AUTO-ACOPLABLE ---
+        // --- INTERFAZ DEL SEGUNDO MONITOR / PANTALLA ---
         function abrirPantallaProyector() {
             windowProyector = window.open("", "LPC_Proyector", "width=1200,height=800,menubar=no,toolbar=no");
             windowProyector.document.write(`
@@ -537,27 +593,26 @@
                         }
                         #bg-video { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; z-index: 1; display: none; }
                         
-                        /* BOTÓN INVISIBLE / AUTOOCULTABLE DE PANTALLA COMPLETA */
                         .fullscreen-bar {
                             position: absolute; top: 10px; right: 10px; z-index: 999;
-                            opacity: 0.1; transition: opacity 0.3s;
+                            opacity: 0.05; transition: opacity 0.3s;
                         }
                         .fullscreen-bar:hover { opacity: 1; }
                         .fs-btn { background: #22c55e; color: white; border: none; padding: 8px 14px; font-weight: bold; border-radius: 4px; cursor: pointer; font-size: 0.85rem;}
                         
                         .content-wrapper { 
                             position: relative; z-index: 2; 
-                            width: 92vw; height: 90vh; 
+                            width: 92vw; height: 88vh; 
                             display: flex; flex-direction: column; 
                             justify-content: center; align-items: center;
                             box-sizing: border-box;
                         }
                         #referencia { 
-                            font-size: 2.2rem; margin-bottom: 20px; color: #f59e0b; 
+                            font-size: 2.3rem; margin-bottom: 20px; color: #f59e0b; 
                             text-shadow: 3px 3px 6px #000; font-weight: bold; order: 1;
                         }
                         #texto { 
-                            font-size: 4rem; font-weight: 800; line-height: 1.3; 
+                            font-size: 4.5rem; font-weight: 800; line-height: 1.35; 
                             text-shadow: 4px 4px 10px #000; white-space: pre-line; 
                             order: 2; width: 100%; word-wrap: break-word;
                         }
@@ -574,7 +629,6 @@
                     </div>
 
                     <script>
-                        // Activa el modo pantalla completa nativo para esconder barras de Windows
                         function toggleKioskFullscreen() {
                             if (!document.fullscreenElement) {
                                 document.documentElement.requestFullscreen().catch(err => {
@@ -585,7 +639,6 @@
                             }
                         }
 
-                        // Algoritmo dinámico de acople milimétrico
                         window.parentWindowRef = window.opener;
                         
                         function ajusteDeTextoAuto() {
@@ -598,9 +651,8 @@
 
                             let baseSize = parseFloat(window.getComputedStyle(txtDiv).fontSize);
                             
-                            // Disminuye progresivamente el tamaño de la letra si sobrepasa los márgenes seguros del monitor
                             while ((wrapper.scrollHeight > wrapper.clientHeight || wrapper.scrollWidth > wrapper.clientWidth) && baseSize > 16) {
-                                baseSize -= 2;
+                                baseSize -= 1;
                                 txtDiv.style.fontSize = baseSize + "px";
                             }
                         }
@@ -608,7 +660,6 @@
                         window.recalculaTextoAcoplado = ajusteDeTextoAuto;
                         window.addEventListener('resize', ajusteDeTextoAuto);
                         
-                        // Observador de cambios del contenedor para disparar re-ajustes en tiempo real
                         const observer = new ResizeObserver(() => { ajusteDeTextoAuto(); });
                         observer.observe(document.getElementById('wrapper'));
                     <\/script>
@@ -630,7 +681,6 @@
                 pTexto.innerText = texto;
                 pRef.innerText = referencia; 
                 
-                // Forzar reajuste dinámico de fuente
                 if(windowProyector.recalculaTextoAcoplado) {
                     windowProyector.recalculaTextoAcoplado();
                 }
