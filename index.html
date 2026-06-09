@@ -130,7 +130,6 @@
 </head>
 <body>
 
-    <!-- HEADER -->
     <header>
         <h1>Los Pentecostales de <span>Catacamas</span></h1>
         <div>
@@ -139,7 +138,6 @@
     </header>
 
     <main>
-        <!-- COLUMNA 1: MENÚ -->
         <div class="sidebar">
             <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Sagrada Biblia (JSON)</button>
             <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Alabanzas (Manual)</button>
@@ -147,10 +145,8 @@
             <button class="menu-btn" onclick="cambiarModulo('fondos', this)">🖼️ Multimedia y Fondos</button>
         </div>
 
-        <!-- COLUMNA 2: PANELES INTERACTIVOS -->
         <div class="content-panel">
             
-            <!-- SECCIÓN BIBLIA (.JSON CORREGIDA) -->
             <div id="mod-biblia" class="module-section active">
                 <h3>📖 Sagrada Biblia Inteligente (JSON)</h3>
                 
@@ -172,7 +168,6 @@
                 </ul>
             </div>
 
-            <!-- SECCIÓN CANCIONES -->
             <div id="mod-canciones" class="module-section">
                 <h3>✍️ Registrar Nueva Alabanza</h3>
                 <div class="form-group">
@@ -188,7 +183,6 @@
                 <ul class="data-list" id="lista-canciones-db" style="max-height: 220px; overflow-y: auto;"></ul>
             </div>
 
-            <!-- SECCIÓN: TEXTO / ANUNCIOS / NOTAS -->
             <div id="mod-texto" class="module-section">
                 <h3>📝 Panel de Anuncios, Notas y Avisos</h3>
                 <div class="form-group">
@@ -205,7 +199,6 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN MULTIMEDIA -->
             <div id="mod-fondos" class="module-section">
                 <h3>Fondos de Pantalla</h3>
                 <div class="form-group">
@@ -220,7 +213,6 @@
             </div>
         </div>
 
-        <!-- COLUMNA 3: MONITOR Y COLA VERTICAL DE SELECCIÓN -->
         <div class="preview-panel">
             <div class="monitor-title">Monitor de Transmisión</div>
             <div class="monitor-box" id="panel-monitor">
@@ -303,9 +295,11 @@
             const chapters = libro.chapters || libro.capitulos || [];
             
             chapters.forEach((cap, index) => {
+                // Soportar si el capitulo tiene numero oficial o es por indice
+                let numCap = cap.chapter_number || (index + 1);
                 let option = document.createElement('option');
                 option.value = index; 
-                option.innerText = `Capítulo ${index + 1}`;
+                option.innerText = `Capítulo ${numCap}`;
                 selectCap.appendChild(option);
             });
             buscarVersiculos();
@@ -324,49 +318,70 @@
             const capitulo = chapters[capIdx];
             if(!capitulo) return;
 
-            // ANALIZADOR ADAPTATIVO DE VERSÍCULOS
+            let libroNombre = libro.name || libro.nombre || "Biblia";
+            let numCap = capitulo.chapter_number || (parseInt(capIdx) + 1);
+
+            // ANALIZADOR COMPATIBLE CON ARREGLO DE 'ITEMS' (REINA VALERA 1960)
             let versiculosArr = [];
-            if (Array.isArray(capitulo)) {
-                versiculosArr = capitulo;
-            } else if (typeof capitulo === 'object' && capitulo !== null) {
-                versiculosArr = capitulo.verses || capitulo.versiculos || capitulo.verses_list || Object.values(capitulo).find(v => Array.isArray(v)) || [];
-            }
-
-            if (versiculosArr.length === 0 && typeof capitulo === 'object') {
-                // Si el capítulo es un contenedor directo de claves numéricas de versos
-                versiculosArr = Object.entries(capitulo).map(([k, v]) => ({ verse: k, text: v }));
-            }
-
-            versiculosArr.forEach((versiculo, index) => {
-                let textoVersiculo = "";
-                let numVersiculo = index + 1;
-
-                if (typeof versiculo === 'string') {
-                    textoVersiculo = versiculo;
-                } else if (typeof versiculo === 'object' && versiculo !== null) {
-                    // Extrae el texto sin importar si la propiedad se llama text, texto o similar
-                    textoVersiculo = versiculo.text || versiculo.texto || versiculo.body || Object.values(versiculo).find(val => typeof val === 'string') || "";
-                    numVersiculo = versiculo.verse || versiculo.num || versiculo.id || numVersiculo;
+            if (capitulo.items && Array.isArray(capitulo.items)) {
+                // Formato RVR1960 basado en tu archivo físico: extraemos solo tipos 'verse'
+                capitulo.items.forEach(item => {
+                    if (item.type === 'verse') {
+                        let numV = (item.verse_numbers && item.verse_numbers[0]) ? item.verse_numbers[0] : '';
+                        let txtV = (item.lines && Array.isArray(item.lines)) ? item.lines.join(" ") : "";
+                        versiculosArr.push({ verse: numV, text: txtV });
+                    }
+                });
+            } else {
+                // Formato genérico de respaldo por si se cargan otras estructuras
+                if (Array.isArray(capitulo)) {
+                    versiculosArr = capitulo;
+                } else if (typeof capitulo === 'object') {
+                    let subLista = capitulo.verses || capitulo.versiculos || Object.values(capitulo).find(v => Array.isArray(v)) || [];
+                    if (subLista.length > 0) {
+                        subLista.forEach((v, idx) => {
+                            if (typeof v === 'string') versiculosArr.push({ verse: idx + 1, text: v });
+                            else versiculosArr.push({ verse: v.verse || idx + 1, text: v.text || v.texto || "" });
+                        });
+                    } else {
+                        Object.entries(capitulo).forEach(([k, v]) => {
+                            if (!isNaN(k) && typeof v === 'string') versiculosArr.push({ verse: k, text: v });
+                        });
+                    }
                 }
+            }
 
-                let libroNombre = libro.name || libro.nombre || "Biblia";
+            // Renderizar la lista en pantalla
+            versiculosArr.forEach((v) => {
+                let textVersiculo = v.text;
+                let numVersiculo = v.verse;
 
                 let li = document.createElement('li');
                 li.setAttribute('data-verse', numVersiculo);
-                li.innerHTML = `<strong>${numVersiculo}.</strong> ${textoVersiculo}`;
+                li.innerHTML = `<strong>${numVersiculo}.</strong> ${textVersiculo}`;
+                
+                // Al hacer clic, generamos el desglose independiente en la columna derecha
                 li.onclick = () => {
-                    const cita = `${libroNombre} ${parseInt(capIdx)+1}:${numVersiculo}`;
-                    enviarProyeccion(textoVersiculo, cita);
+                    const cita = `${libroNombre} ${numCap}:${numVersiculo}`;
                     
-                    // Colocar en columna derecha (Desglose Activo)
                     const colaDiv = document.getElementById('live-segments-queue');
                     colaDiv.innerHTML = "";
+                    
                     let btn = document.createElement('button');
                     btn.className = "menu-btn"; 
-                    btn.style.padding = "10px";
-                    btn.innerHTML = `<strong style="color:var(--warning)">${cita}:</strong><br>${textoVersiculo}`;
-                    btn.onclick = () => enviarProyeccion(textoVersiculo, cita);
+                    btn.style.padding = "12px";
+                    btn.style.width = "100%";
+                    btn.style.textAlign = "left";
+                    btn.style.borderLeft = "4px solid var(--warning)";
+                    btn.innerHTML = `<strong style="color:var(--warning)">[Versículo ${numVersiculo}] ${cita}</strong><br>${textVersiculo}`;
+                    
+                    // Al hacer clic en el desglose, se proyecta a la pantalla secundaria
+                    btn.onclick = () => enviarProyeccion(textVersiculo, cita);
+                    
                     colaDiv.appendChild(btn);
+                    
+                    // Proyectar de inmediato el versículo seleccionado
+                    enviarProyeccion(textVersiculo, cita);
                 };
                 listaResultados.appendChild(li);
             });
