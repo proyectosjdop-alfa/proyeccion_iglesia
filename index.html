@@ -3,251 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyector Eclesial Pro</title>
+    <title>LOS PENTECOSTALES DE CATACAMAS - Sistema de Proyección</title>
     <style>
         :root {
-            --primary: #1e293b;
-            --accent: #0284c7;
-            --bg: #f8fafc;
-            --text: #0f172a;
+            --bg-main: #0f172a;        /* Slate 900 */
+            --bg-card: #1e293b;        /* Slate 800 */
+            --bg-input: #334155;       /* Slate 700 */
+            --accent: #0284c7;         /* Sky 600 */
+            --accent-hover: #0369a1;   /* Sky 700 */
+            --text-main: #f8fafc;      /* Slate 50 */
+            --text-muted: #94a3b8;     /* Slate 400 */
+            --danger: #ef4444;
+            --success: #22c55e;
         }
+
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             margin: 0; padding: 0;
-            background: var(--bg); color: var(--text);
+            background: var(--bg-main); color: var(--text-main);
             display: grid; grid-template-rows: auto 1fr; height: 100vh;
+            overflow: hidden;
         }
+
+        /* HEADER INTERFAZ PRO */
         header {
-            background: var(--primary); color: white;
-            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
+            background: #020617; /* Slate 950 */
+            padding: 15px 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #1e293b;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
+        header h1 {
+            margin: 0; font-size: 1.35rem; font-weight: 800; letter-spacing: 1.5px;
+            color: #fff; text-transform: uppercase;
+        }
+        header h1 span { color: var(--accent); }
+
+        /* BOTONES */
         .btn {
             background: var(--accent); color: white; border: none;
-            padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;
+            padding: 10px 18px; border-radius: 6px; cursor: pointer;
+            font-weight: 600; font-size: 0.9rem; transition: background 0.2s;
         }
-        .btn-danger { background: #ef4444; }
-        .btn-success { background: #22c55e; }
+        .btn:hover { background: var(--accent-hover); }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #16a34a; }
         
+        /* LAYOUT PRINCIPAL */
         main {
-            display: grid; grid-template-columns: 280px 1fr 350px;
+            display: grid; grid-template-columns: 280px 1fr 380px;
             gap: 15px; padding: 15px; overflow: hidden;
         }
+        
+        /* COLUMNA 1: MENÚ LATERAL */
         .sidebar {
-            background: white; padding: 15px; border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 10px;
+            background: var(--bg-card); padding: 15px; border-radius: 8px;
+            display: flex; flex-direction: column; gap: 10px; border: 1px solid #334155;
         }
         .menu-btn {
-            background: #f1f5f9; border: 1px solid #cbd5e1; padding: 12px;
-            border-radius: 6px; cursor: pointer; text-align: left; font-size: 1rem;
+            background: var(--bg-input); border: 1px solid #475569; padding: 14px;
+            border-radius: 6px; cursor: pointer; text-align: left; font-size: 0.95rem;
+            color: var(--text-main); font-weight: 500; transition: all 0.2s;
         }
-        .menu-btn.active { background: var(--accent); color: white; }
+        .menu-btn:hover { background: #475569; }
+        .menu-btn.active { background: var(--accent); border-color: var(--accent); }
 
+        /* COLUMNA 2: NÚCLEO DE CONTENIDO */
         .content-panel {
-            background: white; padding: 20px; border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-y: auto;
+            background: var(--bg-card); padding: 20px; border-radius: 8px;
+            border: 1px solid #334155; overflow-y: auto;
         }
         .module-section { display: none; }
         .module-section.active { display: block; }
+        .module-section h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 1px solid #334155; padding-bottom: 10px; }
 
-        /* Formularios */
-        .form-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 5px; }
+        /* FORMULARIOS ESTILO OSCURO */
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
         .form-group input, .form-group textarea, .form-group select {
-            padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 1rem;
+            background: var(--bg-input); border: 1px solid #475569; padding: 10px;
+            border-radius: 6px; font-size: 0.95rem; color: white; outline: none;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: var(--accent);
         }
 
-        /* Listas de datos */
-        .data-list { list-style: none; padding: 0; margin-top: 15px; }
+        /* BUSCADOR DE ALABANZAS */
+        .search-bar-container { margin-bottom: 15px; }
+        .search-bar-container input {
+            width: 100%; background: var(--bg-input); border: 1px solid #475569; padding: 12px;
+            border-radius: 6px; box-sizing: border-box; color: white; font-size: 1rem;
+        }
+
+        /* LISTAS DE DATOS */
+        .data-list { list-style: none; padding: 0; margin-top: 10px; }
         .data-list li {
-            background: #f1f5f9; padding: 10px; margin-bottom: 8px;
-            border-radius: 4px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            background: var(--bg-input); padding: 12px 15px; margin-bottom: 8px;
+            border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between;
+            align-items: center; border: 1px solid transparent; transition: all 0.2s;
         }
-        .data-list li:hover { background: #e2e8f0; }
+        .data-list li:hover { border-color: var(--accent); background: #475569; }
+        .data-list li strong { color: #f59e0b; margin-right: 5px;}
 
-        /* Panel de Control de Proyección */
+        /* COLUMNA 3: MONITOR EN VIVO */
         .preview-panel {
-            background: #0f172a; color: white; padding: 15px;
+            background: #020617; color: white; padding: 15px;
             border-radius: 8px; display: flex; flex-direction: column; gap: 15px;
+            border: 1px solid #1e293b;
         }
+        .monitor-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;}
         .monitor-box {
-            background: black; border: 2px solid #334155; height: 180px;
-            border-radius: 4px; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center; padding: 10px;
+            background: black; border: 2px solid #334155; height: 200px;
+            border-radius: 6px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center; padding: 15px;
+            position: relative; overflow: hidden; background-size: cover; background-position: center;
         }
-        #monitor-text { font-size: 1.1rem; font-weight: bold; }
-        #monitor-ref { color: #f59e0b; margin-top: 5px; font-size: 0.9rem; }
+        .monitor-video-bg {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0; object-fit: cover; z-index: 1; opacity: 0.4;
+        }
+        #monitor-text { font-size: 1.15rem; font-weight: bold; position: relative; z-index: 2; text-shadow: 2px 2px 4px #000; }
+        #monitor-ref { color: #f59e0b; margin-top: 8px; font-size: 0.9rem; position: relative; z-index: 2; text-shadow: 1px 1px 2px #000; }
     </style>
 </head>
 <body>
 
+    <!-- HEADER LOGO PERSONALIZADO -->
     <header>
-        <h2>⛪ Proyector Eclesial Multi-Pantalla</h2>
+        <h1>Los Pentecostales de <span>Catacamas</span></h1>
         <div>
-            <button class="btn btn-success" onclick="abrirPantallaProyector()">📺 Abrir Pantalla Proyector</button>
+            <button class="btn btn-success" onclick="abrirPantallaProyector()">📺 Proyectar Pantalla Secundaria</button>
         </div>
     </header>
 
     <main>
+        <!-- COLUMNA 1: MENÚ -->
         <div class="sidebar">
-            <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Biblia JSON</button>
-            <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Alabanzas (DB)</button>
-            <button class="menu-btn" onclick="cambiarModulo('anuncios', this)">📢 Anuncios (DB)</button>
+            <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Sagrada Biblia (.BI/.JSON)</button>
+            <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Alabanzas e Himnos</button>
+            <button class="menu-btn" onclick="cambiarModulo('fondos', this)">🖼️ Gestión de Multimedia</button>
         </div>
 
+        <!-- COLUMNA 2: PANELES INTERACTIVOS -->
         <div class="content-panel">
             
+            <!-- SECCIÓN BIBLIA -->
             <div id="mod-biblia" class="module-section active">
-                <h3>Cargar Base de Datos de la Biblia</h3>
+                <h3>Importar Base de Datos de Biblia</h3>
                 <div class="form-group">
-                    <label>Selecciona tu archivo de Biblia (.json):</label>
-                    <input type="file" id="bible-file" accept=".json" onchange="cargarBiblia(event)">
+                    <label>Cargar Archivo de Biblia (Formatos soportados: .bi , .json):</label>
+                    <input type="file" id="bible-file" accept=".bi,.json" onchange="cargarArchivoBiblia(event)">
                 </div>
-                <hr>
-                <h3>Buscador en Tiempo Real</h3>
+                <hr style="border-color: #334155; margin: 20px 0;">
+                <h3>Buscador de Capítulos y Versículos</h3>
                 <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px;">
-                    <select id="bible-book" onchange="actualizarCapitulos()"><option>Carga un archivo JSON primero</option></select>
+                    <select id="bible-book" onchange="actualizarCapitulos()"><option>Suba un archivo bíblico primero</option></select>
                     <select id="bible-chapter" onchange="buscarVersiculos()"><option>Cap</option></select>
                     <input type="number" id="bible-verse-num" placeholder="Ver." oninput="filtrarVersiculoEspecifico()">
                 </div>
                 <ul class="data-list" id="bible-results"></ul>
             </div>
 
+            <!-- SECCIÓN CANCIONES -->
             <div id="mod-canciones" class="module-section">
-                <h3>Gestionar Alabanzas</h3>
+                <h3>Registro de Nuevas Alabanzas</h3>
                 <div class="form-group">
-                    <input type="text" id="song-title" placeholder="Título del Himno / Canto">
-                    <textarea id="song-lyrics" rows="4" placeholder="Escribe las estrofas o coros marcando divisiones..."></textarea>
-                    <button class="btn" onclick="guardarCancion()">💾 Guardar en Base de Datos</button>
+                    <input type="text" id="song-title" placeholder="Título de la Alabanza">
+                    <textarea id="song-lyrics" rows="5" placeholder="Escribe las estrofas. Usa un doble Enter para separar una estrofa de otra."></textarea>
+                    <button class="btn" onclick="guardarCancion()">💾 Almacenar Alabanza</button>
+                </div>
+                <hr style="border-color: #334155; margin: 20px 0;">
+                <h3>Buscador en el Repertorio</h3>
+                <div class="search-bar-container">
+                    <input type="text" id="search-songs-input" placeholder="🔍 Buscar por título o letra de alabanza..." onkeyup="buscarAlabanzasNavegador()">
                 </div>
                 <ul class="data-list" id="lista-canciones-db"></ul>
             </div>
 
-            <div id="mod-anuncios" class="module-section">
-                <h3>Gestionar Anuncios</h3>
+            <!-- SECCIÓN MULTIMEDIA / FONDOS -->
+            <div id="mod-fondos" class="module-section">
+                <h3>Fondos de Pantalla en Vivo</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Sube elementos multimedia para cambiar el fondo estético del Proyector HDMI:</p>
+                
                 <div class="form-group">
-                    <input type="text" id="notice-title" placeholder="Título del Anuncio (ej: Jóvenes)">
-                    <textarea id="notice-text" rows="3" placeholder="Contenido del anuncio..."></textarea>
-                    <button class="btn" onclick="guardarAnuncio()">💾 Guardar Anuncio</button>
+                    <label>Subir Imagen o Video de Fondo:</label>
+                    <input type="file" id="bg-media-file" accept="image/*,video/*" onchange="procesarArchivoFondo(event)">
                 </div>
-                <ul class="data-list" id="lista-anuncios-db"></ul>
+                <hr style="border-color: #334155; margin: 20px 0;">
+                <h3>Fondos Sólidos por Defecto</h3>
+                <ul class="data-list">
+                    <li onclick="cambiarFondoColor('#000000')">⚫ Negro Corporativo</li>
+                    <li onclick="cambiarFondoColor('#0f172a')">🔵 Azul Marino Oscuro</li>
+                    <li onclick="cambiarFondoColor('#14532d')">🟢 Verde Esperanza Misionera</li>
+                </ul>
             </div>
 
         </div>
 
+        <!-- COLUMNA 3: PANEL MONITOR EN VIVO Y COLA -->
         <div class="preview-panel">
-            <h3>Monitor de Control</h3>
-            <div class="monitor-box">
-                <div id="monitor-text">Pantalla Lista</div>
-                <div id="monitor-ref">Iglesia</div>
+            <div class="monitor-title">Monitor de Transmisión (Proyector)</div>
+            <div class="monitor-box" id="panel-monitor">
+                <video id="monitor-video" class="monitor-video-bg" autoplay loop muted style="display: none;"></video>
+                <div id="monitor-text">Pantalla de Bienvenida</div>
+                <div id="monitor-ref">LPC</div>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-danger" style="flex:1" onclick="enviarProyeccion('', '')">🚫 Limpiar</button>
-                <button class="btn" style="background:#475569" onclick="cambiarFondoProyector('#000000')">⚫ Negro</button>
-                <button class="btn" style="background:#1e3a8a" onclick="cambiarFondoProyector('#1e3a8a')">🔵 Azul</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn btn-danger" onclick="enviarProyeccion('', '')">🚫 Limpiar Pantalla</button>
+                <button class="btn" style="background:#475569" onclick="cambiarFondoColor('#000000')">🖤 Fondo Negro</button>
             </div>
-            <hr style="border-color: #334155;">
-            <h4>Estrofas / Segmentos en cola:</h4>
-            <div id="live-segments-queue" style="display:flex; flex-direction:column; gap:5px;">
-                </div>
+            <hr style="border-color: #334155; margin: 5px 0;">
+            <div class="monitor-title">Estrofas / Líneas en Cola</div>
+            <div id="live-segments-queue" style="display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:200px;">
+                <!-- Segmentación de estrofas activas -->
+            </div>
         </div>
     </main>
 
     <script>
-        // --- VARIABLES GLOBALES ---
         let ventanaProyector = null;
         let baseDatosBiblia = null;
+        let mediaFondoUrl = null;
+        let mediaFondoTipo = null; // 'image' o 'video'
 
         // --- SISTEMA DE DOBLE PANTALLA ---
         function abrirPantallaProyector() {
-            // Abre una ventana limpia diseñada para arrastrar al proyector (HDMI 2)
-            ventanaProyector = window.open("", "ProyectorEclesial_Pantalla", "width=800,height=600,menubar=no,toolbar=no,location=no,status=no");
+            ventanaProyector = window.open("", "LPC_Proyector", "width=1024,height=768,menubar=no,toolbar=no,location=no,status=no");
             
-            // Escribimos el HTML y estilos optimizados para el proyector dentro de la nueva ventana
             ventanaProyector.document.write(`
                 <html>
                 <head>
-                    <title>PROYECTOR - PANTALLA VIVA</title>
+                    <title>PROYECTOR - LOS PENTECOSTALES DE CATACAMAS</title>
                     <style>
                         body {
                             margin: 0; background-color: black; color: white;
-                            font-family: 'Arial', sans-serif; overflow: hidden;
+                            font-family: 'Arial', system-ui, sans-serif; overflow: hidden;
                             display: flex; flex-direction: column; justify-content: center;
                             align-items: center; text-align: center; height: 100vh;
-                            transition: background 0.3s;
+                            position: relative;
+                        }
+                        #bg-video {
+                            position: absolute; top:0; left:0; width:100%; height:100%;
+                            object-fit: cover; z-index: 1; display: none;
+                        }
+                        .content-wrapper {
+                            position: relative; z-index: 2; width: 90%;
                         }
                         #texto {
-                            font-size: 4.5rem; font-weight: bold; width: 90%;
-                            line-height: 1.3; text-shadow: 3px 3px 10px rgba(0,0,0,0.9);
-                            white-space: pre-line;
+                            font-size: 4.8rem; font-weight: 800;
+                            line-height: 1.3; text-shadow: 4px 4px 12px rgba(0,0,0,1);
+                            white-space: pre-line; letter-spacing: 1px;
                         }
                         #referencia {
-                            font-size: 2.5rem; margin-top: 30px; color: #f59e0b;
-                            text-shadow: 2px 2px 5px rgba(0,0,0,0.9); font-weight: 500;
+                            font-size: 2.8rem; margin-top: 35px; color: #f59e0b;
+                            text-shadow: 2px 2px 6px rgba(0,0,0,1); font-weight: 600;
                         }
                     </style>
                 </head>
                 <body>
-                    <div id="texto">Bienvenidos</div>
-                    <div id="referencia"></div>
+                    <video id="bg-video" autoplay loop muted></video>
+                    <div class="content-wrapper">
+                        <div id="texto">Bienvenidos</div>
+                        <div id="referencia">Los Pentecostales de Catacamas</div>
+                    </div>
                 </body>
                 </html>
             `);
             ventanaProyector.document.close();
+            
+            // Sincronizar fondo si ya existe uno cargado
+            setTimeout(() => {
+                if(mediaFondoUrl) aplicarFondoEnProyector();
+            }, 500);
         }
 
         function enviarProyeccion(texto, referencia) {
-            // Actualiza el monitor del operador
-            document.getElementById('monitor-text').innerText = texto || "[Pantalla Vacía]";
+            document.getElementById('monitor-text').innerText = texto || "[Vacío]";
             document.getElementById('monitor-ref').innerText = referencia;
 
-            // Envía los datos a la ventana externa si está abierta
             if (ventanaProyector && !ventanaProyector.closed) {
                 ventanaProyector.document.getElementById('texto').innerText = texto;
                 ventanaProyector.document.getElementById('referencia').innerText = referencia;
             }
         }
 
-        function cambiarFondoProyector(colorHex) {
+        // --- MANEJO DE IMÁGENES Y VIDEOS DE FONDO ---
+        function procesarArchivoFondo(evento) {
+            const archivo = evento.target.files[0];
+            if (!archivo) return;
+
+            mediaFondoTipo = archivo.type.startsWith('video/') ? 'video' : 'image';
+            mediaFondoUrl = URL.createObjectURL(archivo);
+
+            // Actualizar monitor local del operador
+            const monitorBox = document.getElementById('panel-monitor');
+            const monitorVideo = document.getElementById('monitor-video');
+
+            if (mediaFondoTipo === 'video') {
+                monitorBox.style.backgroundImage = 'none';
+                monitorVideo.src = mediaFondoUrl;
+                monitorVideo.style.display = 'block';
+            } else {
+                monitorVideo.style.display = 'none';
+                monitorBox.style.backgroundImage = `url('${mediaFondoUrl}')`;
+            }
+
+            aplicarFondoEnProyector();
+        }
+
+        function aplicarFondoEnProyector() {
             if (ventanaProyector && !ventanaProyector.closed) {
+                const pBody = ventanaProyector.document.body;
+                const pVideo = ventanaProyector.document.getElementById('bg-video');
+
+                if (mediaFondoTipo === 'video') {
+                    pBody.style.backgroundImage = 'none';
+                    pVideo.src = mediaFondoUrl;
+                    pVideo.style.display = 'block';
+                } else {
+                    pVideo.style.display = 'none';
+                    pVideo.src = '';
+                    pBody.style.backgroundImage = `url('${mediaFondoUrl}')`;
+                    pBody.style.backgroundSize = 'cover';
+                    pBody.style.backgroundPosition = 'center';
+                }
+            }
+        }
+
+        function cambiarFondoColor(colorHex) {
+            mediaFondoUrl = null;
+            document.getElementById('monitor-video').style.display = 'none';
+            document.getElementById('panel-monitor').style.backgroundImage = 'none';
+            document.getElementById('panel-monitor').style.backgroundColor = colorHex;
+
+            if (ventanaProyector && !ventanaProyector.closed) {
+                const pVideo = ventanaProyector.document.getElementById('bg-video');
+                pVideo.style.display = 'none';
+                pVideo.src = '';
                 ventanaProyector.document.body.style.backgroundImage = 'none';
                 ventanaProyector.document.body.style.backgroundColor = colorHex;
             }
         }
 
-        // --- NAVEGACIÓN ---
-        function cambiarModulo(moduloId, boton) {
-            document.querySelectorAll('.module-section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('mod-' + moduloId).classList.add('active');
-            boton.classList.add('active');
-        }
-
-        // --- MOTOR DE BIBLIA JSON ---
-        function cargarBiblia(evento) {
+        // --- LEER EXTRALÍNEAS / FORMATO BIBLIAS (.BI o .JSON) ---
+        function cargarArchivoBiblia(evento) {
             const archivo = evento.target.files[0];
             if (!archivo) return;
-            
+
             const lector = new FileReader();
             lector.onload = function(e) {
+                const contenido = e.target.result;
                 try {
-                    baseDatosBiblia = JSON.parse(e.target.result);
-                    alert("¡Biblia cargada con éxito!");
+                    // Intentar parsear como JSON directo (Soporta .json y .bi estructurados en JSON)
+                    baseDatosBiblia = JSON.parse(contenido);
+                    alert("Base de datos de la Biblia inicializada.");
                     inicializarFiltrosBiblia();
-                } catch (error) {
-                    alert("Error al leer el archivo JSON de la Biblia. Asegúrate de que tenga el formato correcto.");
+                } catch (err) {
+                    // Si falla, parseamos el archivo .bi plano por líneas estructuradas nativas
+                    procesarBiPlano(contenido);
                 }
             };
             lector.readAsText(archivo);
         }
 
+        function procesarBiPlano(textoPlano) {
+            // Convierte un archivo plano de texto .bi estructurado por líneas en estructura JSON manipulable
+            // Formato esperado típico: NombreLibro|Capitulo|Versiculo|Texto
+            try {
+                const lineas = textoPlano.split('\n');
+                let librosMapeados = {};
+
+                lineas.forEach(linea => {
+                    if(!linea.trim() || !linea.includes('|')) return;
+                    let [libro, cap, ver, texto] = linea.split('|');
+                    
+                    if(!librosMapeados[libro]) librosMapeados[libro] = { name: libro, chapters: [] };
+                    let cIdx = parseInt(cap) - 1;
+                    if(!librosMapeados[libro].chapters[cIdx]) librosMapeados[libro].chapters[cIdx] = [];
+                    
+                    librosMapeados[libro].chapters[cIdx].push({ text: texto.trim() });
+                });
+
+                baseDatosBiblia = Object.values(librosMapeados);
+                if(baseDatosBiblia.length > 0) {
+                    alert("Archivo .bi plano procesado con éxito.");
+                    inicializarFiltrosBiblia();
+                } else {
+                    throw new Error();
+                }
+            } catch(e) {
+                alert("Formato de archivo .bi no reconocido. Asegúrese de separar los campos por barra vertical '|'.");
+            }
+        }
+
         function inicializarFiltrosBiblia() {
             const selectLibro = document.getElementById('bible-book');
             selectLibro.innerHTML = "";
-            
-            // Adaptado para estructuras JSON comunes de Biblias (Array de libros)
             baseDatosBiblia.forEach((libro, index) => {
                 let option = document.createElement('option');
-                option.value = index;
-                option.innerText = libro.name;
+                option.value = index; option.innerText = libro.name;
                 selectLibro.appendChild(option);
             });
             actualizarCapitulos();
@@ -257,12 +412,12 @@
             const libroIdx = document.getElementById('bible-book').value;
             const selectCap = document.getElementById('bible-chapter');
             selectCap.innerHTML = "";
-
             const libro = baseDatosBiblia[libroIdx];
+            
             libro.chapters.forEach((cap, index) => {
+                if(!cap) return;
                 let option = document.createElement('option');
-                option.value = index;
-                option.innerText = `Cap. ${index + 1}`;
+                option.value = index; option.innerText = `Capítulo ${index + 1}`;
                 selectCap.appendChild(option);
             });
             buscarVersiculos();
@@ -276,8 +431,8 @@
 
             const libro = baseDatosBiblia[libroIdx];
             const capitulo = libro.chapters[capIdx];
+            if(!capitulo) return;
 
-            // 'capitulo' suele ser un array de strings (versículos) o objetos
             capitulo.forEach((versiculo, index) => {
                 let textoVersiculo = typeof versiculo === 'object' ? versiculo.text : versiculo;
                 let numVersiculo = index + 1;
@@ -290,115 +445,83 @@
             });
         }
 
+        function Blackout() { enviarProyeccion('', ''); }
+
         function filtrarVersiculoSpecifico() {
             const vNum = document.getElementById('bible-verse-num').value;
-            const items = document.querySelectorAll('#bible-results li');
-            items.forEach(item => {
-                if(vNum === "" || item.getAttribute('data-verse') === vNum) {
-                    item.style.display = "flex";
-                } else {
-                    item.style.display = "none";
-                }
+            document.querySelectorAll('#bible-results li').forEach(item => {
+                item.style.display = (vNum === "" || item.getAttribute('data-verse') === vNum) ? "flex" : "none";
             });
         }
 
-        // --- PERSISTENCIA DE DATOS (LOCALSTORAGE) ---
-        
-        // --- MÓDULO CANCIONES ---
+        // --- NAVEGADOR INTERNO Y PERSISTENCIA DE ALABANZAS ---
         function guardarCancion() {
             const titulo = document.getElementById('song-title').value.trim();
             const letra = document.getElementById('song-lyrics').value.trim();
-            if(!titulo || !letra) return alert("Completa los campos");
+            if(!titulo || !letra) return alert("Por favor llene todos los campos de la alabanza.");
 
-            let canciones = JSON.parse(localStorage.getItem('iglesia_canciones')) || [];
+            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
             canciones.push({ id: Date.now(), titulo, letra });
-            localStorage.setItem('iglesia_canciones', JSON.stringify(canciones));
+            localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
 
             document.getElementById('song-title').value = "";
             document.getElementById('song-lyrics').value = "";
-            listarCanciones();
+            buscarAlabanzasNavegador();
         }
 
-        function listarCanciones() {
+        function buscarAlabanzasNavegador() {
             const lista = document.getElementById('lista-canciones-db');
             lista.innerHTML = "";
-            let canciones = JSON.parse(localStorage.getItem('iglesia_canciones')) || [];
+            const query = document.getElementById('search-songs-input').value.toLowerCase();
+            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
 
-            canciones.forEach(canto => {
+            // Filtrar alabanzas según la consulta escrita en el buscador
+            let cancionesFiltradas = canciones.filter(canto => 
+                canto.titulo.toLowerCase().includes(query) || 
+                canto.letra.toLowerCase().includes(query)
+            );
+
+            cancionesFiltradas.forEach(canto => {
                 let li = document.createElement('li');
-                li.innerHTML = `<span>🎵 ${canto.titulo}</span> <button class="btn btn-danger" style="padding:4px 8px" onclick="eliminarCanto(${canto.id}, event)">❌</button>`;
+                li.innerHTML = `<span>🎵 <strong>${canto.titulo}</strong></span> <button class="btn btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="eliminarCanto(${canto.id}, event)">Eliminar</button>`;
                 li.onclick = () => prepararSegmentosProyeccion(canto.letra, canto.titulo);
                 lista.appendChild(li);
             });
         }
 
         function eliminarCanto(id, e) {
-            e.stopPropagation(); // Evita que se dispare el click del renglón entero
-            let canciones = JSON.parse(localStorage.getItem('iglesia_canciones')) || [];
+            e.stopPropagation();
+            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
             canciones = canciones.filter(c => c.id !== id);
-            localStorage.setItem('iglesia_canciones', JSON.stringify(canciones));
-            listarCanciones();
+            localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
+            buscarAlabanzasNavegador();
         }
 
         function prepararSegmentosProyeccion(textoCompleto, titulo) {
             const colaDiv = document.getElementById('live-segments-queue');
             colaDiv.innerHTML = "";
-
-            // Dividimos el canto por doble salto de línea (párrafos / estrofas)
             const estrofas = textoCompleto.split(/\n\n+/);
             
             estrofas.forEach((estrofa, index) => {
                 let btn = document.createElement('button');
                 btn.className = "menu-btn";
-                btn.style.fontSize = "0.9rem";
-                btn.innerText = `[Part ${index+1}]\n${estrofa.substring(0, 40)}...`;
+                btn.style.padding = "8px"; btn.style.fontSize = "0.85rem";
+                btn.innerText = `Estrofa ${index + 1}:\n${estrofa.substring(0, 50)}...`;
                 btn.onclick = () => enviarProyeccion(estrofa, titulo);
                 colaDiv.appendChild(btn);
             });
-            
-            // Proyecta la primera estrofa por defecto
             enviarProyeccion(estrofas[0], titulo);
         }
 
-        // --- MÓDULO ANUNCIOS ---
-        function guardarAnuncio() {
-            const titulo = document.getElementById('notice-title').value.trim();
-            const texto = document.getElementById('notice-text').value.trim();
-            if(!titulo || !texto) return alert("Completa los campos");
-
-            let anuncios = JSON.parse(localStorage.getItem('iglesia_anuncios')) || [];
-            anuncios.push({ id: Date.now(), titulo, texto });
-            localStorage.setItem('iglesia_anuncios', JSON.stringify(anuncios));
-
-            document.getElementById('notice-title').value = "";
-            document.getElementById('notice-text').value = "";
-            listarAnuncios();
+        function cambiarModulo(moduloId, boton) {
+            document.querySelectorAll('.module-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('mod-' + moduloId).classList.add('active');
+            boton.classList.add('active');
         }
 
-        function listarAnuncios() {
-            const lista = document.getElementById('lista-anuncios-db');
-            lista.innerHTML = "";
-            let anuncios = JSON.parse(localStorage.getItem('iglesia_anuncios')) || [];
-
-            anuncios.forEach(anuncio => {
-                let li = document.createElement('li');
-                li.innerHTML = `<span>📢 ${anuncio.titulo}</span> <button class="btn btn-danger" style="padding:4px 8px" onclick="eliminarAnuncio(${anuncio.id}, event)">❌</button>`;
-                li.onclick = () => enviarProyeccion(anuncio.text || anuncio.texto, "Anuncio");
-                lista.appendChild(li);
-            });
-        }
-
-        function eliminarAnuncio(id, e) {
-            e.stopPropagation();
-            let anuncios = JSON.parse(localStorage.getItem('iglesia_anuncios')) || [];
-            anuncios = anuncios.filter(a => a.id !== id);
-            localStorage.setItem('iglesia_anuncios', JSON.stringify(anuncios));
-            listarAnuncios();
-        }
-
-        // Al iniciar la aplicación, cargamos lo que esté guardado en memoria local
-        listarCanciones();
-        listarAnuncios();
+        // Inicializar vistas de la persistencia
+        buscarAlabanzasNavegador();
     </script>
 </body>
 </html>
