@@ -130,6 +130,7 @@
 </head>
 <body>
 
+    <!-- HEADER -->
     <header>
         <h1>Los Pentecostales de <span>Catacamas</span></h1>
         <div>
@@ -138,6 +139,7 @@
     </header>
 
     <main>
+        <!-- COLUMNA 1: MENÚ -->
         <div class="sidebar">
             <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Sagrada Biblia (JSON)</button>
             <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Alabanzas (Manual)</button>
@@ -145,8 +147,10 @@
             <button class="menu-btn" onclick="cambiarModulo('fondos', this)">🖼️ Multimedia y Fondos</button>
         </div>
 
+        <!-- COLUMNA 2: PANELES INTERACTIVOS -->
         <div class="content-panel">
             
+            <!-- SECCIÓN BIBLIA (.JSON CORREGIDA) -->
             <div id="mod-biblia" class="module-section active">
                 <h3>📖 Sagrada Biblia Inteligente (JSON)</h3>
                 
@@ -168,6 +172,7 @@
                 </ul>
             </div>
 
+            <!-- SECCIÓN CANCIONES -->
             <div id="mod-canciones" class="module-section">
                 <h3>✍️ Registrar Nueva Alabanza</h3>
                 <div class="form-group">
@@ -183,6 +188,7 @@
                 <ul class="data-list" id="lista-canciones-db" style="max-height: 220px; overflow-y: auto;"></ul>
             </div>
 
+            <!-- SECCIÓN: TEXTO / ANUNCIOS / NOTAS -->
             <div id="mod-texto" class="module-section">
                 <h3>📝 Panel de Anuncios, Notas y Avisos</h3>
                 <div class="form-group">
@@ -199,6 +205,7 @@
                 </div>
             </div>
 
+            <!-- SECCIÓN MULTIMEDIA -->
             <div id="mod-fondos" class="module-section">
                 <h3>Fondos de Pantalla</h3>
                 <div class="form-group">
@@ -213,6 +220,7 @@
             </div>
         </div>
 
+        <!-- COLUMNA 3: MONITOR Y COLA VERTICAL DE SELECCIÓN -->
         <div class="preview-panel">
             <div class="monitor-title">Monitor de Transmisión</div>
             <div class="monitor-box" id="panel-monitor">
@@ -240,7 +248,7 @@
         let backgroundUrl = null;
         let backgroundType = null; 
 
-        // --- EXTRACTOR INTELIGENTE Y COMPATIBLE PARA FORMATOS DE BIBLIA JSON (DHH94 / RVR) ---
+        // --- EXTRACTOR INTELIGENTE Y COMPATIBLE PARA FORMATOS DE BIBLIA JSON ---
         function cargarBibliaJSON(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -250,7 +258,6 @@
                 try {
                     const datosParsed = JSON.parse(evt.target.result);
                     
-                    // Extraer raíz de manera flexible
                     if (datosParsed.books) biblesDataJSON = datosParsed.books;
                     else if (datosParsed.libros) biblesDataJSON = datosParsed.libros;
                     else biblesDataJSON = datosParsed;
@@ -260,7 +267,7 @@
                     }
 
                     inicializarFiltrosBiblia();
-                    alert("¡Biblia DHH / JSON procesada y cargada con éxito!");
+                    alert("¡Biblia procesada y cargada con éxito!");
                 } catch (err) {
                     alert("Error leyendo el archivo JSON. Verifica la integridad de tu archivo.");
                     console.error(err);
@@ -294,14 +301,17 @@
             
             const chapters = libro.chapters || libro.capitulos || [];
             
-            // CORRECCIÓN DE RAÍZ: Filtramos y guardamos solo los que son capítulos válidos, omitiendo las introducciones falsas
+            // CONTADOR AUTÓNOMO SECUENCIAL: Forza a que la lista empiece estrictamente en 1 independientemente de lo que diga el JSON
+            let numeroCapituloVisible = 1;
+
             chapters.forEach((cap, index) => {
                 if (cap.is_chapter !== false) { 
-                    let numCap = cap.chapter_number || (index + 1);
                     let option = document.createElement('option');
-                    option.value = index; // Mantiene el índice físico para buscar los versículos correctos
-                    option.innerText = `Capítulo ${numCap}`;
+                    option.value = index; 
+                    option.setAttribute('data-display-num', numeroCapituloVisible); // Guardamos la etiqueta limpia corregida
+                    option.innerText = `Capítulo ${numeroCapituloVisible}`;
                     selectCap.appendChild(option);
+                    numeroCapituloVisible++; 
                 }
             });
             buscarVersiculos();
@@ -309,7 +319,8 @@
 
         function buscarVersiculos() {
             const libroIdx = document.getElementById('bible-book').value;
-            const capIdx = document.getElementById('bible-chapter').value;
+            const selectCap = document.getElementById('bible-chapter');
+            const capIdx = selectCap.value;
             const listaResultados = document.getElementById('bible-results');
             listaResultados.innerHTML = "";
 
@@ -321,7 +332,10 @@
             if(!capitulo) return;
 
             let libroNombre = libro.name || libro.nombre || "Biblia";
-            let numCap = capitulo.chapter_number || (parseInt(capIdx) + 1);
+            
+            // CORRECCIÓN TOTAL DE CITAS: Extrae el número secuencial generado para el visor en lugar de la propiedad corrupta del JSON
+            const optionSeleccionada = selectCap.options[selectCap.selectedIndex];
+            let numCap = optionSeleccionada ? optionSeleccionada.getAttribute('data-display-num') : "1";
 
             // ANALIZADOR COMPATIBLE CON ARREGLO DE 'ITEMS' (REINA VALERA 1960)
             let versiculosArr = [];
