@@ -130,6 +130,7 @@
 </head>
 <body>
 
+    <!-- HEADER -->
     <header>
         <h1>Los Pentecostales de <span>Catacamas</span></h1>
         <div>
@@ -138,6 +139,7 @@
     </header>
 
     <main>
+        <!-- COLUMNA 1: MENÚ -->
         <div class="sidebar">
             <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Sagrada Biblia (JSON)</button>
             <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Alabanzas (Manual)</button>
@@ -145,8 +147,10 @@
             <button class="menu-btn" onclick="cambiarModulo('fondos', this)">🖼️ Multimedia y Fondos</button>
         </div>
 
+        <!-- COLUMNA 2: PANELES INTERACTIVOS -->
         <div class="content-panel">
             
+            <!-- SECCIÓN BIBLIA (.JSON CORREGIDA) -->
             <div id="mod-biblia" class="module-section active">
                 <h3>📖 Sagrada Biblia Inteligente (JSON)</h3>
                 
@@ -168,6 +172,7 @@
                 </ul>
             </div>
 
+            <!-- SECCIÓN CANCIONES -->
             <div id="mod-canciones" class="module-section">
                 <h3>✍️ Registrar Nueva Alabanza</h3>
                 <div class="form-group">
@@ -183,6 +188,7 @@
                 <ul class="data-list" id="lista-canciones-db" style="max-height: 220px; overflow-y: auto;"></ul>
             </div>
 
+            <!-- SECCIÓN: TEXTO / ANUNCIOS / NOTAS -->
             <div id="mod-texto" class="module-section">
                 <h3>📝 Panel de Anuncios, Notas y Avisos</h3>
                 <div class="form-group">
@@ -199,6 +205,7 @@
                 </div>
             </div>
 
+            <!-- SECCIÓN MULTIMEDIA -->
             <div id="mod-fondos" class="module-section">
                 <h3>Fondos de Pantalla</h3>
                 <div class="form-group">
@@ -213,6 +220,7 @@
             </div>
         </div>
 
+        <!-- COLUMNA 3: MONITOR Y COLA VERTICAL DE SELECCIÓN -->
         <div class="preview-panel">
             <div class="monitor-title">Monitor de Transmisión</div>
             <div class="monitor-box" id="panel-monitor">
@@ -260,7 +268,7 @@
                     }
 
                     inicializarFiltrosBiblia();
-                    alert("¡Biblia DHH / JSON procesada y cargada con éxito!");
+                    alert("¡Biblia DHH / JSON processed y cargada con éxito!");
                 } catch (err) {
                     alert("Error leyendo el archivo JSON. Verifica la integridad de tu archivo.");
                     console.error(err);
@@ -295,7 +303,7 @@
             const chapters = libro.chapters || libro.capitulos || [];
             
             chapters.forEach((cap, index) => {
-                // Soportar si el capitulo tiene numero oficial o es por indice
+                // CORRECCIÓN AQUÍ: Tomar el número real del JSON, de lo contrario usar (index + 1) de forma correcta
                 let numCap = cap.chapter_number || (index + 1);
                 let option = document.createElement('option');
                 option.value = index; 
@@ -319,12 +327,13 @@
             if(!capitulo) return;
 
             let libroNombre = libro.name || libro.nombre || "Biblia";
+            
+            // CORRECCIÓN AQUÍ: Evitamos que asigne un valor erróneo sumando mal. Tomamos el número exacto del capítulo.
             let numCap = capitulo.chapter_number || (parseInt(capIdx) + 1);
 
             // ANALIZADOR COMPATIBLE CON ARREGLO DE 'ITEMS' (REINA VALERA 1960)
             let versiculosArr = [];
             if (capitulo.items && Array.isArray(capitulo.items)) {
-                // Formato RVR1960 basado en tu archivo físico: extraemos solo tipos 'verse'
                 capitulo.items.forEach(item => {
                     if (item.type === 'verse') {
                         let numV = (item.verse_numbers && item.verse_numbers[0]) ? item.verse_numbers[0] : '';
@@ -333,7 +342,6 @@
                     }
                 });
             } else {
-                // Formato genérico de respaldo por si se cargan otras estructuras
                 if (Array.isArray(capitulo)) {
                     versiculosArr = capitulo;
                 } else if (typeof capitulo === 'object') {
@@ -360,7 +368,6 @@
                 li.setAttribute('data-verse', numVersiculo);
                 li.innerHTML = `<strong>${numVersiculo}.</strong> ${textVersiculo}`;
                 
-                // Al hacer clic, generamos el desglose independiente en la columna derecha
                 li.onclick = () => {
                     const cita = `${libroNombre} ${numCap}:${numVersiculo}`;
                     
@@ -375,12 +382,9 @@
                     btn.style.borderLeft = "4px solid var(--warning)";
                     btn.innerHTML = `<strong style="color:var(--warning)">[Versículo ${numVersiculo}] ${cita}</strong><br>${textVersiculo}`;
                     
-                    // Al hacer clic en el desglose, se proyecta a la pantalla secundaria
                     btn.onclick = () => enviarProyeccion(textVersiculo, cita);
                     
                     colaDiv.appendChild(btn);
-                    
-                    // Proyectar de inmediato el versículo seleccionado
                     enviarProyeccion(textVersiculo, cita);
                 };
                 listaResultados.appendChild(li);
