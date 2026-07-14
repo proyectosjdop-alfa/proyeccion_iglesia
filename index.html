@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOS PENTECOSTALES DE CATACAMAS - Sistema Integrado</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;        
+            --bg-card: #1e293b;        
+            --bg-input: #334155;       
+            --accent: #0284c7;         
+            --accent-hover: #0369a1;   
+            --text-main: #f8fafc;      
+            --text-muted: #94a3b8;     
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0; padding: 0;
+            background: var(--bg-main); color: var(--text-main);
+            display: grid; grid-template-rows: auto 1fr; height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- ESTILIZADO DE BARRAS DE DESPLAZAMIENTO (SCROLLBARS) --- */
+        ::-webkit-scrollbar {
+            width: 10px; /* Más gruesa para que sea fácil de arrastrar */
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1329;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
+            border: 2px solid #0b1329;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+
+        header {
+            background: #020617; 
+            padding: 12px 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #1e293b;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        header h1 {
+            margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: 1.5px;
+            color: #fff; text-transform: uppercase;
+        }
+        header h1 span { color: var(--accent); }
+
+        .btn {
+            background: var(--accent); color: white; border: none;
+            padding: 10px 18px; border-radius: 6px; cursor: pointer;
+            font-weight: 600; font-size: 0.9rem; transition: background 0.2s;
+        }
+        .btn:hover { background: var(--accent-hover); }
+        .btn-danger { background: var(--danger); }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #16a34a; }
+        .btn-warning { background: var(--warning); color: #020617; }
+        .btn-warning:hover { background: #d97706; }
+        
+        main {
+            display: grid; grid-template-columns: 290px 1fr 390px;
+            gap: 15px; padding: 15px; overflow: hidden;
+            height: calc(100vh - 55px); /* Ajuste estricto al contenedor */
+            box-sizing: border-box;
+        }
+        
+        .sidebar {
+            background: var(--bg-card); padding: 15px; border-radius: 8px;
+            display: flex; flex-direction: column; gap: 10px; border: 1px solid #334155;
+            overflow-y: auto;
+        }
+        .menu-btn {
+            background: var(--bg-input); border: 1px solid #475569; padding: 12px;
+            border-radius: 6px; cursor: pointer; text-align: left; font-size: 0.95rem;
+            color: var(--text-main); font-weight: 500; transition: all 0.2s;
+        }
+        .menu-btn:hover { background: #475569; }
+        .menu-btn.active { background: var(--accent); border-color: var(--accent); }
+
+        .content-panel {
+            background: var(--bg-card); padding: 20px; border-radius: 8px;
+            border: 1px solid #334155; overflow-y: auto;
+            display: flex; flex-direction: column; box-sizing: border-box;
+        }
+        .module-section { display: none; height: 100%; }
+        .module-section.active { display: flex; flex-direction: column; gap: 12px; }
+        .module-section h3 { margin: 0; font-size: 1.2rem; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+
+        .form-group { margin-bottom: 5px; display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; }
+        .form-group input, .form-group textarea, .form-group select {
+            background: var(--bg-input); border: 1px solid #475569; padding: 10px;
+            border-radius: 6px; font-size: 0.95rem; color: white; outline: none;
+        }
+
+        .data-list { list-style: none; padding: 0; margin: 0; }
+        .data-list li {
+            background: var(--bg-input); padding: 12px 15px; margin-bottom: 8px;
+            border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between;
+            align-items: center; border: 1px solid transparent; transition: all 0.2s;
+        }
+        .data-list li:hover { border-color: var(--accent); background: #475569; }
+        .data-list li strong { color: #f59e0b; margin-right: 5px;}
+
+        .preview-panel {
+            background: #020617; color: white; padding: 15px;
+            border-radius: 8px; display: flex; flex-direction: column; gap: 12px;
+            border: 1px solid #1e293b; height: 100%; box-sizing: border-box; overflow: hidden;
+        }
+        .monitor-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;}
+        
+        .monitor-box {
+            background: black; border: 2px solid #334155; min-height: 115px; height: 115px;
+            border-radius: 6px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center; padding: 8px;
+            position: relative; overflow: hidden; background-size: cover; background-position: center;
+        }
+        .monitor-video-bg {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0; object-fit: cover; z-index: 1; opacity: 0.4;
+        }
+        #monitor-title-text { font-size: 0.75rem; color: var(--warning); font-weight: bold; position: relative; z-index: 2; margin-bottom: 2px;}
+        #monitor-text { font-size: 0.9rem; font-weight: bold; position: relative; z-index: 2; text-shadow: 2px 2px 4px #000; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;}
+        
+        .queue-container {
+            flex-grow: 1; 
+            overflow-y: scroll; /* Fuerza a que la barra exista siempre */
+            display: flex; flex-direction: column; gap: 8px; 
+            padding-right: 5px; background: #0f172a;
+            border: 1px solid #1e293b; border-radius: 6px; padding: 8px;
+        }
+
+        .timer-display {
+            font-size: 1.8rem; font-weight: 800; color: var(--danger); text-align: center;
+            background: #020617; padding: 10px; border-radius: 6px; border: 1px solid #334155;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <h1>Los Pentecostales de <span>Catacamas</span></h1>
+        <div>
+            <button class="btn btn-success" onclick="abrirPantallaProyector()">📺 Abrir Ventana de Proyección</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- COLUMNA 1: MENÚ Y CONFIGURACIÓN GLOBAL -->
+        <div class="sidebar">
+            <button class="menu-btn active" onclick="cambiarModulo('biblia', this)">📖 Sagrada Biblia</button>
+            <button class="menu-btn" onclick="cambiarModulo('canciones', this)">🎵 Alabanzas (Manual)</button>
+            <button class="menu-btn" onclick="cambiarModulo('texto', this)">📝 Texto / Anuncios / Notas</button>
+            <button class="menu-btn" onclick="cambiarModulo('cronometro', this)">⏱️ Cronómetro / Apertura</button>
+            <button class="menu-btn" onclick="cambiarModulo('fondos', this)">🖼️ Multimedia y Fondos</button>
+            
+            <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid #334155;">
+                <div class="form-group">
+                    <label>⚙️ Tipo de Letra Proyector:</label>
+                    <select id="global-font-family" onchange="cambiarTipografiaGlobal(this.value)">
+                        <option value="Arial, sans-serif">Arial (Estándar)</option>
+                        <option value="'Segoe UI', sans-serif">Segoe UI (Moderna)</option>
+                        <option value="'Impact', sans-serif">Impact (Gruesa)</option>
+                        <option value="'Georgia', serif">Georgia (Elegante)</option>
+                        <option value="monospace">Consola / Monospace</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-top: 10px;">
+                    <label>📏 Tamaño Máximo Inicial:</label>
+                    <select id="global-max-font" onchange="actualizarMaxFontProyector(this.value)">
+                        <option value="4.5rem">Normal (Recomendado)</option>
+                        <option value="3.5rem">Compacto (Para versos largos)</option>
+                        <option value="5.5rem">Grande</option>
+                        <option value="7rem">Gigante</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA 2: PANELES INTERACTIVOS -->
+        <div class="content-panel">
+            
+            <!-- SECCIÓN BIBLIA -->
+            <div id="mod-biblia" class="module-section active">
+                <h3>📖 Sagrada Biblia</h3>
+                
+                <div class="form-group" style="background: #0f172a; padding: 12px; border-radius: 6px; border: 1px solid var(--accent);">
+                    <label style="color: var(--accent); font-weight: bold;">📂 CARGAR ARCHIVO BIBLIA .JSON:</label>
+                    <input type="file" id="json-bible-file" accept=".json" onchange="cargarBibliaJSON(event)">
+                    <div id="status-storage-bible" style="color: var(--warning); font-size: 0.8rem; margin-top: 5px; font-weight: bold;">Selecciona tu archivo JSON de la biblia para iniciar.</div>
+                </div>
+
+                <div id="controles-biblia-json" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px;">
+                    <select id="bible-book" onchange="actualizarCapitulos()"><option>Primero carga el archivo .json</option></select>
+                    <select id="bible-chapter" onchange="buscarVersiculos()"><option>-</option></select>
+                    <input type="number" id="bible-verse-num" placeholder="Ver." oninput="filtrarVersiculoEspecifico()">
+                </div>
+
+                <h4 style="margin: 10px 0 5px 0; color: var(--accent);">Versículos:</h4>
+                <ul class="data-list" id="bible-results" style="flex-grow: 1; overflow-y: scroll; max-height: 320px; background: #0f172a; padding: 5px; border-radius:6px;">
+                    <li style="color: var(--text-muted);">Al subir el archivo se cargará directo en memoria RAM de forma inmediata.</li>
+                </ul>
+            </div>
+
+            <!-- SECCIÓN CANCIONES (SCROLL TOTALMENTE CORREGIDO) -->
+            <div id="mod-canciones" class="module-section">
+                <h3 id="song-form-title">✍️ Registrar Nueva Alabanza</h3>
+                <div class="form-group">
+                    <input type="hidden" id="song-edit-id" value="">
+                    <input type="text" id="song-title" placeholder="Título oficial de la alabanza">
+                    <textarea id="song-lyrics" rows="3" placeholder="Escribe o pega las estrofas aquí. Usa DOBLE ENTER para separar estrofas."></textarea>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <button class="btn btn-success" id="song-save-btn" onclick="guardarCancionManual()">💾 Guardar en Memoria de Alabanzas</button>
+                        <button class="btn" id="song-cancel-edit-btn" onclick="cancelarEdicionCancion()" style="background:#475569; display:none;">✖️ Cancelar edición</button>
+                    </div>
+                </div>
+                <hr style="border-color: #334155; margin: 8px 0;">
+                
+                <h3>🎵 Repertorio Guardado</h3>
+                <div style="margin-bottom: 8px;">
+                    <input type="text" id="search-songs-input" placeholder="🔍 Buscar por título..." onkeyup="buscarAlabanzasNavegador()" style="width: 100%; background: var(--bg-input); border: 1px solid #475569; padding: 10px; border-radius: 6px; color: white;">
+                </div>
+                <!-- Aquí se amplió el alto máximo y se forzó scrollbar siempre visible -->
+                <ul class="data-list" id="lista-canciones-db" style="flex-grow: 1; min-height: 180px; max-height: 280px; overflow-y: scroll; background:#0f172a; padding:6px; border-radius:6px; border:1px solid #334155;"></ul>
+            </div>
+
+            <!-- SECCIÓN: TEXTO / ANUNCIOS / NOTAS -->
+            <div id="mod-texto" class="module-section">
+                <h3 id="notice-form-title">📝 Panel de Anuncios y Notas Libres</h3>
+                <div class="form-group">
+                    <input type="hidden" id="notice-edit-id" value="">
+                    <label>Título Superior (Opcional):</label>
+                    <input type="text" id="notice-title" placeholder="Ej: AVISO IMPORTANTÍSIMO (Vacío si no lleva)">
+                </div>
+                <div class="form-group">
+                    <label>Contenido Principal del Mensaje:</label>
+                    <textarea id="notice-content" rows="6" placeholder="Escribe el cuerpo del mensaje aquí..."></textarea>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 5px;">
+                    <button class="btn btn-warning" onclick="proyectarTextoLibre()">📢 Proyectar Texto</button>
+                    <button class="btn btn-success" id="notice-save-btn" onclick="guardarAnuncio()">💾 Guardar</button>
+                    <button class="btn btn-danger" onclick="limpiarCamposTexto()" style="background:#475569;">Limpiar</button>
+                </div>
+                <button class="btn" id="notice-cancel-edit-btn" onclick="cancelarEdicionAnuncio()" style="background:#475569; display:none; margin-top:5px;">✖️ Cancelar edición</button>
+
+                <hr style="border-color: #334155; margin: 8px 0;">
+                <h3>🗂️ Anuncios Guardados</h3>
+                <div style="margin-bottom: 8px;">
+                    <input type="text" id="search-notices-input" placeholder="🔍 Buscar por título..." onkeyup="buscarAnunciosNavegador()" style="width: 100%; background: var(--bg-input); border: 1px solid #475569; padding: 10px; border-radius: 6px; color: white;">
+                </div>
+                <ul class="data-list" id="lista-anuncios-db" style="flex-grow: 1; min-height: 140px; max-height: 220px; overflow-y: scroll; background:#0f172a; padding:6px; border-radius:6px; border:1px solid #334155;"></ul>
+            </div>
+
+            <!-- SECCIÓN: CRONÓMETRO -->
+            <div id="mod-cronometro" class="module-section">
+                <h3>⏱️ Cronómetro y Cuenta Regresiva de Servicio</h3>
+                <div class="form-group">
+                    <label>Texto de Advertencia / Encabezado:</label>
+                    <input type="text" id="timer-message" value="EL SERVICIO COMENZARÁ EN:" placeholder="Ej: EL SERVICIO INICIA EN...">
+                </div>
+                <div class="form-group">
+                    <label>Tiempo Inicial (Minutos):</label>
+                    <input type="number" id="timer-minutes" value="5" min="1" max="180">
+                </div>
+                
+                <div class="timer-display" id="local-timer-view">05:00</div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <button class="btn btn-success" onclick="iniciarCuentaRegresiva()">▶️ Lanzar y Proyectar</button>
+                    <button class="btn btn-danger" onclick="detenerCuentaRegresiva()">⏱️ Detener</button>
+                </div>
+            </div>
+
+            <!-- SECCIÓN MULTIMEDIA -->
+            <div id="mod-fondos" class="module-section">
+                <h3>Fondos de Pantalla</h3>
+                <div class="form-group">
+                    <label>Subir Imagen o Video Transmisible:</label>
+                    <input type="file" id="bg-media-file" accept="image/*,video/*" onchange="procesarArchivoFondo(event)">
+                </div>
+                <hr style="border-color: #334155; margin: 15px 0;">
+                <ul class="data-list">
+                    <li onclick="cambiarFondoColor('#000000')">⚫ Negro Absoluto (Cierre)</li>
+                    <li onclick="cambiarFondoColor('#0f172a')">🔵 Fondo Slate Corporativo</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- COLUMNA 3: MONITOR Y COLA (SCROLLBAR GARANTIZADO DE ALTA VISIBILIDAD) -->
+        <div class="preview-panel">
+            <div class="monitor-title">Monitor de Control Interno</div>
+            <div class="monitor-box" id="panel-monitor">
+                <video id="monitor-video" class="monitor-video-bg" autoplay loop muted style="display: none;"></video>
+                <div id="monitor-title-text"></div>
+                <div id="monitor-text">Pantalla de Espera</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="btn btn-danger" style="padding: 6px;" onclick="enviarProyeccion('', '')">🚫 Limpiar Pantalla</button>
+                <button class="btn" style="background:#475569; padding: 6px;" onclick="cambiarFondoColor('#000000')">🖤 Apagar Proyector</button>
+            </div>
+            <hr style="border-color: #334155; margin: 2px 0;">
+            <div class="monitor-title" style="color: var(--warning);">Líneas Disponibles en Cola</div>
+            
+            <!-- Contenedor optimizado con overflow-y pasivo y forzado para que bajes cómodamente -->
+            <div id="live-segments-queue" class="queue-container"></div>
+        </div>
+    </main>
+
+    <script>
+        let windowProyector = null;
+        let biblesDataJSON = null; 
+        let backgroundUrl = null;
+        let backgroundType = null; 
+        let currentFontFamily = "Arial, sans-serif";
+        let currentMaxFontSize = "4.5rem";
+        
+        let countdownInterval = null;
+        let totalSecondsLeft = 0;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            buscarAlabanzasNavegador();
+            buscarAnunciosNavegador();
+        });
+
+        function cargarBibliaJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const datosParsed = JSON.parse(evt.target.result);
+                    let limpio = datosParsed.books || datosParsed.libros || datosParsed;
+                    if (!Array.isArray(limpio) && typeof limpio === 'object') {
+                        limpio = Object.values(limpio);
+                    }
+                    biblesDataJSON = limpio;
+                    inicializarFiltrosBiblia();
+                    const statusDiv = document.getElementById('status-storage-bible');
+                    statusDiv.innerText = "✅ Biblia cargada con éxito en la memoria del sistema.";
+                    statusDiv.style.color = "var(--success)";
+                } catch (err) {
+                    alert("Error leyendo el archivo JSON.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function inicializarFiltrosBiblia() {
+            const selectLibro = document.getElementById('bible-book');
+            selectLibro.innerHTML = "";
+            if(!biblesDataJSON || biblesDataJSON.length === 0) return;
+            biblesDataJSON.forEach((libro, index) => {
+                let name = libro.name || libro.nombre || libro.titulo || `Libro ${index + 1}`;
+                let option = document.createElement('option');
+                option.value = index; 
+                option.innerText = name;
+                selectLibro.appendChild(option);
+            });
+            actualizarCapitulos();
+        }
+
+        function actualizarCapitulos() {
+            const libroIdx = document.getElementById('bible-book').value;
+            const selectCap = document.getElementById('bible-chapter');
+            selectCap.innerHTML = "";
+            const libro = biblesDataJSON[libroIdx];
+            if(!libro) return;
+            const chapters = libro.chapters || libro.capitulos || [];
+            let numeroCapituloVisible = 1;
+            chapters.forEach((cap, index) => {
+                if (cap.is_chapter !== false) { 
+                    let option = document.createElement('option');
+                    option.value = index; 
+                    option.setAttribute('data-display-num', numeroCapituloVisible); 
+                    option.innerText = `Capítulo ${numeroCapituloVisible}`;
+                    selectCap.appendChild(option);
+                    numeroCapituloVisible++; 
+                }
+            });
+            buscarVersiculos();
+        }
+
+        function buscarVersiculos() {
+            const libroIdx = document.getElementById('bible-book').value;
+            const selectCap = document.getElementById('bible-chapter');
+            const capIdx = selectCap.value;
+            const listaResultados = document.getElementById('bible-results');
+            listaResultados.innerHTML = "";
+
+            const libro = biblesDataJSON[libroIdx];
+            if(!libro || !selectCap.options.length) return;
+            const chapters = libro.chapters || libro.capitulos || [];
+            const capitulo = chapters[capIdx];
+            if(!capitulo) return;
+
+            let libroNombre = libro.name || libro.nombre || "Biblia";
+            const optionSeleccionada = selectCap.options[selectCap.selectedIndex];
+            let numCap = optionSeleccionada ? optionSeleccionada.getAttribute('data-display-num') : "1";
+
+            let versiculosArr = [];
+            if (capitulo.items && Array.isArray(capitulo.items)) {
+                capitulo.items.forEach(item => {
+                    if (item.type === 'verse') {
+                        let numV = (item.verse_numbers && item.verse_numbers[0]) ? item.verse_numbers[0] : '';
+                        let txtV = (item.lines && Array.isArray(item.lines)) ? item.lines.join(" ") : "";
+                        versiculosArr.push({ verse: numV, text: txtV });
+                    }
+                });
+            } else {
+                if (Array.isArray(capitulo)) {
+                    versiculosArr = capitulo;
+                } else if (typeof capitulo === 'object') {
+                    let subLista = capitulo.verses || capitulo.versiculos || Object.values(capitulo).find(v => Array.isArray(v)) || [];
+                    subLista.forEach((v, idx) => {
+                        if (typeof v === 'string') versiculosArr.push({ verse: idx + 1, text: v });
+                        else versiculosArr.push({ verse: v.verse || idx + 1, text: v.text || v.texto || "" });
+                    });
+                }
+            }
+
+            versiculosArr.forEach((v) => {
+                let li = document.createElement('li');
+                li.setAttribute('data-verse', v.verse);
+                li.innerHTML = `<strong>${v.verse}.</strong> ${v.text}`;
+                li.onclick = () => {
+                    detenerCuentaRegresiva();
+                    const cita = `${libroNombre} ${numCap}:${v.verse}`;
+                    const colaDiv = document.getElementById('live-segments-queue');
+                    colaDiv.innerHTML = "";
+                    let btn = document.createElement('button');
+                    btn.className = "menu-btn"; btn.style.width = "100%";
+                    btn.style.borderLeft = "4px solid var(--warning)";
+                    btn.innerHTML = `<strong style="color:var(--warning)">${cita}</strong><br>${v.text}`;
+                    btn.onclick = () => enviarProyeccion(v.text, cita);
+                    colaDiv.appendChild(btn);
+                    enviarProyeccion(v.text, cita);
+                };
+                listaResultados.appendChild(li);
+            });
+        }
+
+        function filtrarVersiculoEspecifico() {
+            const vNum = document.getElementById('bible-verse-num').value;
+            document.querySelectorAll('#bible-results li').forEach(item => {
+                item.style.display = (vNum === "" || item.getAttribute('data-verse') == vNum) ? "flex" : "none";
+            });
+        }
+
+        function cambiarTipografiaGlobal(fontName) {
+            currentFontFamily = fontName;
+            if (windowProyector && !windowProyector.closed) {
+                windowProyector.document.body.style.fontFamily = fontName;
+                windowProyector.recalculaTextoAcoplado();
+            }
+        }
+
+        function actualizarMaxFontProyector(maxSize) {
+            currentMaxFontSize = maxSize;
+            if (windowProyector && !windowProyector.closed) {
+                windowProyector.recalculaTextoAcoplado();
+            }
+        }
+
+        function proyectarTextoLibre() {
+            detenerCuentaRegresiva();
+            const titulo = document.getElementById('notice-title').value.trim();
+            const contenido = document.getElementById('notice-content').value.trim();
+            if (!contenido) return;
+            enviarProyeccion(contenido, titulo); 
+            const colaDiv = document.getElementById('live-segments-queue');
+            colaDiv.innerHTML = ""; 
+            let btn = document.createElement('button');
+            btn.className = "menu-btn"; btn.style.borderLeft = "4px solid var(--warning)";
+            btn.innerHTML = `<strong>${titulo || 'TEXTO LIBRE'}</strong><br>${contenido}`;
+            btn.onclick = () => enviarProyeccion(contenido, titulo);
+            colaDiv.appendChild(btn);
+        }
+
+        function limpiarCamposTexto() {
+            document.getElementById('notice-title').value = "";
+            document.getElementById('notice-content').value = "";
+            cancelarEdicionAnuncio();
+        }
+
+        function guardarAnuncio() {
+            const titulo = document.getElementById('notice-title').value.trim();
+            const contenido = document.getElementById('notice-content').value.trim();
+            const editId = document.getElementById('notice-edit-id').value;
+            if (!contenido) return alert("Escribe el contenido del mensaje antes de guardar.");
+
+            let anuncios = JSON.parse(localStorage.getItem('lpc_anuncios')) || [];
+
+            if (editId) {
+                anuncios = anuncios.map(a => a.id === Number(editId) ? { ...a, titulo, contenido } : a);
+            } else {
+                anuncios.push({ id: Date.now(), titulo, contenido });
+            }
+            localStorage.setItem('lpc_anuncios', JSON.stringify(anuncios));
+
+            cancelarEdicionAnuncio();
+            buscarAnunciosNavegador();
+        }
+
+        function buscarAnunciosNavegador() {
+            const lista = document.getElementById('lista-anuncios-db');
+            lista.innerHTML = "";
+            const query = document.getElementById('search-notices-input').value.toLowerCase();
+            let anuncios = JSON.parse(localStorage.getItem('lpc_anuncios')) || [];
+            let filtrados = anuncios.filter(a => (a.titulo || "").toLowerCase().includes(query) || a.contenido.toLowerCase().includes(query));
+
+            filtrados.forEach(anuncio => {
+                let li = document.createElement('li');
+                li.innerHTML = `<span>📝 <strong>${anuncio.titulo || "(Sin título)"}</strong></span>
+                    <span style="display:flex; gap:6px;">
+                        <button class="btn" style="padding:4px 8px; font-size:0.75rem; background:#475569;" onclick="editarAnuncio(${anuncio.id}, event)">✏️</button>
+                        <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="eliminarAnuncio(${anuncio.id}, event)">X</button>
+                    </span>`;
+                li.onclick = () => enviarProyeccion(anuncio.contenido, anuncio.titulo);
+                lista.appendChild(li);
+            });
+        }
+
+        function editarAnuncio(id, e) {
+            e.stopPropagation();
+            let anuncios = JSON.parse(localStorage.getItem('lpc_anuncios')) || [];
+            const anuncio = anuncios.find(a => a.id === id);
+            if (!anuncio) return;
+            document.getElementById('notice-edit-id').value = anuncio.id;
+            document.getElementById('notice-title').value = anuncio.titulo || "";
+            document.getElementById('notice-content').value = anuncio.contenido;
+            document.getElementById('notice-form-title').innerText = "✏️ Editando Anuncio";
+            document.getElementById('notice-save-btn').innerText = "💾 Actualizar";
+            document.getElementById('notice-cancel-edit-btn').style.display = "block";
+            document.getElementById('notice-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function cancelarEdicionAnuncio() {
+            document.getElementById('notice-edit-id').value = "";
+            document.getElementById('notice-form-title').innerText = "📝 Panel de Anuncios y Notas Libres";
+            document.getElementById('notice-save-btn').innerText = "💾 Guardar";
+            document.getElementById('notice-cancel-edit-btn').style.display = "none";
+        }
+
+        function eliminarAnuncio(id, e) {
+            e.stopPropagation();
+            if (!confirm("¿Eliminar este anuncio?")) return;
+            let anuncios = JSON.parse(localStorage.getItem('lpc_anuncios')) || [];
+            anuncios = anuncios.filter(a => a.id !== id);
+            localStorage.setItem('lpc_anuncios', JSON.stringify(anuncios));
+            buscarAnunciosNavegador();
+        }
+
+        function iniciarCuentaRegresiva() {
+            detenerCuentaRegresiva();
+            const msg = document.getElementById('timer-message').value.trim();
+            const mins = parseInt(document.getElementById('timer-minutes').value) || 5;
+            totalSecondsLeft = mins * 60;
+            actualizarInterfazCronometro(msg);
+            countdownInterval = setInterval(() => {
+                totalSecondsLeft--;
+                if (totalSecondsLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    enviarProyeccion("00:00", msg);
+                    document.getElementById('local-timer-view').innerText = "00:00";
+                } else {
+                    actualizarInterfazCronometro(msg);
+                }
+            }, 1000);
+        }
+
+        function actualizarInterfazCronometro(mensajeSuperior) {
+            let m = Math.floor(totalSecondsLeft / 60).toString().padStart(2, '0');
+            let s = (totalSecondsLeft % 60).toString().padStart(2, '0');
+            let tiempoTexto = `${m}:${s}`;
+            document.getElementById('local-timer-view').innerText = tiempoTexto;
+            enviarProyeccion(tiempoTexto, mensajeSuperior);
+        }
+
+        function detenerCuentaRegresiva() {
+            if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+        }
+
+        function guardarCancionManual() {
+            const titulo = document.getElementById('song-title').value.trim();
+            const letra = document.getElementById('song-lyrics').value.trim();
+            const editId = document.getElementById('song-edit-id').value;
+            if(!titulo || !letra) return alert("Rellena todos los campos.");
+
+            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
+
+            if (editId) {
+                canciones = canciones.map(c => c.id === Number(editId) ? { ...c, titulo, letra } : c);
+            } else {
+                canciones.push({ id: Date.now(), titulo, letra });
+            }
+            localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
+
+            cancelarEdicionCancion();
+            buscarAlabanzasNavegador();
+        }
+
+        function editarCanto(id, e) {
+            e.stopPropagation();
+            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
+            const canto = canciones.find(c => c.id === id);
+            if (!canto) return;
+            document.getElementById('song-edit-id').value = canto.id;
+            document.getElementById('song-title').value = canto.titulo;
+            document.getElementById('song-lyrics').value = canto.letra;
+            document.getElementById('song-form-title').innerText = "✏️ Editando Alabanza";
+            document.getElementById('song-save-btn').innerText = "💾 Actualizar Alabanza";
+            document.getElementById('song-cancel-edit-btn').style.display = "block";
+            document.getElementById('song-title').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function cancelarEdicionCancion() {
+            document.getElementById('song-edit-id').value = "";
+            document.getElementById('song-title').value = "";
+            document.getElementById('song-lyrics').value = "";
+            document.getElementById('song-form-title').innerText = "✍️ Registrar Nueva Alabanza";
+            document.getElementById('song-save-btn').innerText = "💾 Guardar en Memoria de Alabanzas";
+            document.getElementById('song-cancel-edit-btn').style.display = "none";
+        }
+
+        function buscarAlabanzasNavegador() {
+            const lista = document.getElementById('lista-canciones-db');
+            lista.innerHTML = "";
+            const query = document.getElementById('search-songs-input').value.toLowerCase();
+            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
+            let filtradas = canciones.filter(c => c.titulo.toLowerCase().includes(query));
+            
+            filtradas.forEach(canto => {
+                let li = document.createElement('li');
+                li.innerHTML = `<span>🎵 <strong>${canto.titulo}</strong></span>
+                    <span style="display:flex; gap:6px;">
+                        <button class="btn" style="padding:4px 8px; font-size:0.75rem; background:#475569;" onclick="editarCanto(${canto.id}, event)">✏️</button>
+                        <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="eliminarCanto(${canto.id}, event)">X</button>
+                    </span>`;
+                li.onclick = () => prepararSegmentosProyeccion(canto.letra, canto.titulo);
+                lista.appendChild(li);
+            });
+        }
+
+        function eliminarCanto(id, e) {
+            e.stopPropagation();
+            if(!confirm("¿Eliminar alabanza?")) return;
+            let canciones = JSON.parse(localStorage.getItem('lpc_canciones')) || [];
+            canciones = canciones.filter(c => c.id !== id);
+            localStorage.setItem('lpc_canciones', JSON.stringify(canciones));
+            buscarAlabanzasNavegador();
+        }
+
+        function prepararSegmentosProyeccion(textoCompleto, titulo) {
+            detenerCuentaRegresiva();
+            const colaDiv = document.getElementById('live-segments-queue');
+            colaDiv.innerHTML = "";
+            const estrofas = textoCompleto.split(/\n\n+/);
+            estrofas.forEach((estrofa, index) => {
+                let btn = document.createElement('button');
+                btn.className = "menu-btn";
+                btn.style.width = "100%";
+                btn.style.whiteSpace = "pre-line";
+                btn.innerText = `[Estrofa ${index + 1}]\n${estrofa}`;
+                btn.onclick = () => enviarProyeccion(estrofa, titulo);
+                colaDiv.appendChild(btn);
+            });
+            enviarProyeccion(estrofas[0], titulo);
+        }
+
+        function abrirPantallaProyector() {
+            const anchoPantalla = window.screen.availWidth;
+            const altoPantalla = window.screen.availHeight;
+            windowProyector = window.open("", "LPC_Proyector",
+                `width=${anchoPantalla},height=${altoPantalla},left=0,top=0,menubar=no,toolbar=no,location=no,status=no,scrollbars=no`);
+            windowProyector.document.write(`
+                <html>
+                <head>
+                    <title>SISTEMA PROYECTOR - LPC</title>
+                    <style>
+                        body { 
+                            margin: 0; background-color: black; color: white; 
+                            font-family: ${currentFontFamily}; overflow: hidden; 
+                            display: flex; flex-direction: column; justify-content: center; 
+                            align-items: center; text-align: center; height: 100vh; position: relative; 
+                        }
+                        #bg-video { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; z-index: 1; display: none; }
+                        .content-wrapper { 
+                            position: relative; z-index: 2; width: 92vw; height: 88vh; 
+                            display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box;
+                        }
+                        #referencia { font-size: 2.3rem; margin-bottom: 20px; color: #f59e0b; text-shadow: 3px 3px 6px #000; font-weight: bold; order: 1;}
+                        #texto { font-size: 4.5rem; font-weight: 800; line-height: 1.35; text-shadow: 4px 4px 10px #000; white-space: pre-line; order: 2; width: 100%; word-wrap: break-word;}
+                    </style>
+                </head>
+                <body>
+                    <video id="bg-video" loop muted playsinline></video>
+                    <div class="content-wrapper" id="wrapper">
+                        <div id="referencia"></div>
+                        <div id="texto">Bienvenidos</div>
+                    </div>
+                    <button id="btn-fullscreen" title="Pantalla Completa (F)" style="
+                        position:fixed; bottom:18px; right:18px; z-index:99;
+                        background:rgba(2,6,23,0.65); color:#f8fafc; border:1px solid #475569;
+                        padding:10px 14px; border-radius:6px; cursor:pointer; font-size:0.85rem;
+                        font-family: system-ui, sans-serif;">🖥️ Pantalla Completa</button>
+                    <script>
+                        window.parentWindowRef = window.opener;
+                        function ajusteDeTextoAuto() {
+                            const txtDiv = document.getElementById('texto');
+                            const wrapper = document.getElementById('wrapper');
+                            if(!txtDiv || !txtDiv.innerText.trim()) return;
+                            let maxFontStr = window.parentWindowRef.currentMaxFontSize || "4.5rem";
+                            txtDiv.style.fontSize = maxFontStr;
+                            let baseSize = parseFloat(window.getComputedStyle(txtDiv).fontSize);
+                            while ((wrapper.scrollHeight > wrapper.clientHeight || wrapper.scrollWidth > wrapper.clientWidth) && baseSize > 16) {
+                                baseSize -= 1;
+                                txtDiv.style.fontSize = baseSize + "px";
+                            }
+                        }
+                        window.recalculaTextoAcoplado = ajusteDeTextoAuto;
+                        window.addEventListener('resize', ajusteDeTextoAuto);
+                        const observer = new ResizeObserver(() => { ajusteDeTextoAuto(); });
+                        observer.observe(document.getElementById('wrapper'));
+
+                        // --- PANTALLA COMPLETA (oculta barra de tareas / navegador) ---
+                        const elRaiz = document.documentElement;
+                        const btnFS = document.getElementById('btn-fullscreen');
+
+                        function estaEnFullscreen() {
+                            return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+                        }
+
+                        function pedirFullscreen() {
+                            const req = elRaiz.requestFullscreen || elRaiz.webkitRequestFullscreen || elRaiz.msRequestFullscreen;
+                            if (req) {
+                                req.call(elRaiz).then(actualizarBotonFS).catch(() => actualizarBotonFS());
+                            }
+                        }
+
+                        function salirFullscreen() {
+                            const salir = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+                            if (salir) salir.call(document);
+                        }
+
+                        function actualizarBotonFS() {
+                            if (estaEnFullscreen()) {
+                                btnFS.style.display = 'none';
+                            } else {
+                                btnFS.style.display = 'block';
+                                btnFS.innerText = '🖥️ Pantalla Completa';
+                            }
+                        }
+
+                        btnFS.onclick = () => { estaEnFullscreen() ? salirFullscreen() : pedirFullscreen(); };
+                        document.addEventListener('keydown', (e) => {
+                            if (e.key === 'f' || e.key === 'F') { estaEnFullscreen() ? salirFullscreen() : pedirFullscreen(); }
+                        });
+                        document.addEventListener('fullscreenchange', actualizarBotonFS);
+                        document.addEventListener('webkitfullscreenchange', actualizarBotonFS);
+
+                        // Intento automático al abrir (puede requerir el clic de respaldo si el navegador lo bloquea)
+                        window.intentarFullscreenAutomatico = pedirFullscreen;
+                    <\/script>
+                </body>
+                </html>
+            `);
+            windowProyector.document.close();
+            windowProyector.focus();
+            setTimeout(() => {
+                if(backgroundUrl) aplicarFondoEnProyector();
+                if (windowProyector && windowProyector.intentarFullscreenAutomatico) {
+                    windowProyector.intentarFullscreenAutomatico();
+                }
+            }, 300);
+        }
+
+        function enviarProyeccion(texto, referencia) {
+            document.getElementById('monitor-title-text').innerText = referencia;
+            document.getElementById('monitor-text').innerText = texto || "[Pantalla en Blanco]";
+            if (windowProyector && !windowProyector.closed) {
+                windowProyector.document.getElementById('texto').innerText = texto;
+                windowProyector.document.getElementById('referencia').innerText = referencia; 
+                if(windowProyector.recalculaTextoAcoplado) windowProyector.recalculaTextoAcoplado();
+            }
+        }
+
+        function cambiarModulo(moduloId, boton) {
+            document.querySelectorAll('.module-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('mod-' + moduloId).classList.add('active');
+            boton.classList.add('active');
+        }
+
+        function procesarArchivoFondo(evento) {
+            const archivo = evento.target.files[0];
+            if (!archivo) return;
+            if (backgroundUrl) URL.revokeObjectURL(backgroundUrl);
+            backgroundType = archivo.type.startsWith('video/') ? 'video' : 'image';
+            backgroundUrl = URL.createObjectURL(archivo);
+            
+            const monitorBox = document.getElementById('panel-monitor');
+            const monitorVideo = document.getElementById('monitor-video');
+            if (backgroundType === 'video') {
+                monitorBox.style.backgroundImage = 'none';
+                monitorVideo.src = backgroundUrl; monitorVideo.style.display = 'block'; monitorVideo.play();
+            } else {
+                monitorVideo.style.display = 'none';
+                monitorBox.style.backgroundImage = `url('${backgroundUrl}')`;
+            }
+            aplicarFondoEnProyector();
+        }
+
+        function aplicarFondoEnProyector() {
+            if (windowProyector && !windowProyector.closed) {
+                const pBody = windowProyector.document.body;
+                const pVideo = windowProyector.document.getElementById('bg-video');
+                if (backgroundType === 'video') {
+                    pBody.style.backgroundImage = 'none';
+                    pVideo.src = backgroundUrl; pVideo.style.display = 'block'; pVideo.play().catch(e => {});
+                } else {
+                    pVideo.style.display = 'none'; pVideo.src = '';
+                    pBody.style.backgroundImage = `url('${backgroundUrl}')`; pBody.style.backgroundSize = 'cover'; pBody.style.backgroundPosition = 'center';
+                }
+            }
+        }
+
+        function cambiarFondoColor(colorHex) {
+            if (backgroundUrl) { URL.revokeObjectURL(backgroundUrl); backgroundUrl = null; }
+            document.getElementById('monitor-video').style.display = 'none';
+            document.getElementById('panel-monitor').style.backgroundImage = 'none';
+            document.getElementById('panel-monitor').style.backgroundColor = colorHex;
+            if (windowProyector && !windowProyector.closed) {
+                const pVideo = windowProyector.document.getElementById('bg-video');
+                pVideo.style.display = 'none'; pVideo.src = '';
+                windowProyector.document.body.style.backgroundImage = 'none';
+                windowProyector.document.body.style.backgroundColor = colorHex;
+            }
+        }
+    </script>
+</body>
+</html>
